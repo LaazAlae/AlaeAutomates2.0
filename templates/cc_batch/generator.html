@@ -236,15 +236,15 @@ function HeadlessAutomation() {
     this.currentRecord = PAYMENT_DATA[this.currentRecordIndex];
     
     console.log('═══════════════════════════════════════');
-    console.log('🤖 AUTOMATION STATUS');
+    console.log('Robot AUTOMATION STATUS');
     console.log('═══════════════════════════════════════');
-    console.log('📍 Page: ' + this.currentPageState);
-    console.log('📋 Record: ' + (this.currentRecordIndex + 1) + '/' + PAYMENT_DATA.length);
+    console.log('Page: Page: ' + this.currentPageState);
+    console.log('Record: ' + (this.currentRecordIndex + 1) + '/' + PAYMENT_DATA.length);
     if (this.currentRecord) {
-        console.log('📝 Processing: ' + this.currentRecord.invoiceNumber + ' - ' + this.currentRecord.customer);
-        console.log('💰 Amount: $' + this.currentRecord.settlementAmount);
+        console.log('Note: Processing: ' + this.currentRecord.invoiceNumber + ' - ' + this.currentRecord.customer);
+        console.log('Amount: Amount: $' + this.currentRecord.settlementAmount);
     }
-    console.log('🔄 Step: ' + this.getStepName(this.processingStep));
+    console.log('Status: Step: ' + this.getStepName(this.processingStep));
     console.log('═══════════════════════════════════════');
 }
 
@@ -266,7 +266,7 @@ HeadlessAutomation.prototype.getStepName = function(step) {
 
 HeadlessAutomation.prototype.execute = function() {
     if (!this.currentRecord) {
-        console.log('✅ ALL RECORDS COMPLETED!');
+        console.log('Success: ALL RECORDS COMPLETED!');
         return;
     }
     
@@ -274,37 +274,37 @@ HeadlessAutomation.prototype.execute = function() {
     
     switch (this.processingStep) {
         case 0: // Click Add Receipt
-            console.log('🔄 Clicking "Add Receipt"...');
+            console.log('Status: Clicking "Add Receipt"...');
             this.clickButton('Add Receipt');
             console.log('✓ Done! Page will redirect...');
             break;
             
         case 1: // Click By Invoice
-            console.log('🔄 Clicking "By Invoice"...');
+            console.log('Status: Clicking "By Invoice"...');
             this.clickButton('By Invoice');
             console.log('✓ Done! Page will redirect...');
             break;
             
         case 2: // Enter Invoice Number
             var cleanInvoice = this.cleanInvoiceNumber(this.currentRecord.invoiceNumber);
-            console.log('🔄 Entering invoice: ' + cleanInvoice);
+            console.log('Status: Entering invoice: ' + cleanInvoice);
             this.fillField('ctl00$ContentPlaceHolder1$txtNumber', cleanInvoice);
             console.log('✓ Invoice entered!');
             setTimeout(function() {
-                console.log('🔄 Clicking "Search"...');
+                console.log('Status: Clicking "Search"...');
                 self.clickButton('Search');
                 console.log('✓ Search clicked! Page will redirect...');
             }, 1000);
             break;
             
         case 3: // Click Search (if invoice already entered)
-            console.log('🔄 Clicking "Search"...');
+            console.log('Status: Clicking "Search"...');
             this.clickButton('Search');
             console.log('✓ Done! Page will redirect to payment form...');
             break;
             
         case 4: // Payment form - start filling
-            console.log('🔄 Starting payment form fill...');
+            console.log('Status: Starting payment form fill...');
             var paymentType = this.determinePaymentType(this.currentRecord.cardPaymentMethod);
             console.log('→ Selecting payment type: ' + paymentType);
             this.selectDropdown('ctl00$ContentPlaceHolder1$lstType', paymentType);
@@ -322,12 +322,12 @@ HeadlessAutomation.prototype.execute = function() {
                         self.fillField('ctl00$ContentPlaceHolder1$txtCheckName', self.currentRecord.customer);
                         
                         setTimeout(function() {
-                            console.log('🔄 Clicking "Save"...');
+                            console.log('Status: Clicking "Save"...');
                             self.clickButton('Save');
-                            console.log('✅ Payment saved!');
+                            console.log('Success: Payment saved!');
                             
                             self.nextRecord();
-                            console.log('📝 Ready for next record. Navigate to main batch page and run again.');
+                            console.log('Note: Ready for next record. Navigate to main batch page and run again.');
                         }, 1000);
                     }, 500);
                 }, 500);
@@ -337,21 +337,21 @@ HeadlessAutomation.prototype.execute = function() {
         case 5: // If payment method already selected
         case 6: // If amount already entered
         case 7: // If customer already entered
-            console.log('🔍 Form partially filled, completing remaining fields...');
+            console.log('Search: Form partially filled, completing remaining fields...');
             var self = this;
             setTimeout(function() { self.completeForm(); }, 500);
             break;
             
         case 8: // Ready to save
-            console.log('🔄 Clicking "Save"...');
+            console.log('Status: Clicking "Save"...');
             this.clickButton('Save');
-            console.log('✅ Payment saved!');
+            console.log('Success: Payment saved!');
             this.nextRecord();
-            console.log('📝 Ready for next record. Navigate to main batch page and run again.');
+            console.log('Note: Ready for next record. Navigate to main batch page and run again.');
             break;
             
         default:
-            console.log('❓ Unknown step: ' + this.processingStep);
+            console.log('Unknown step: ' + this.processingStep);
     }
 };
 
@@ -372,9 +372,9 @@ HeadlessAutomation.prototype.completeForm = function() {
         }
         
         setTimeout(function() {
-            console.log('🔄 Clicking "Save"...');
+            console.log('Status: Clicking "Save"...');
             self.clickButton('Save');
-            console.log('✅ Payment saved!');
+            console.log('Success: Payment saved!');
             self.nextRecord();
         }, 1000);
     }, 500);
@@ -387,11 +387,11 @@ HeadlessAutomation.prototype.nextRecord = function() {
     if (this.currentRecordIndex < PAYMENT_DATA.length) {
         this.currentRecord = PAYMENT_DATA[this.currentRecordIndex];
         console.log('');
-        console.log('📋 Next record: ' + this.currentRecord.invoiceNumber);
+        console.log('Next record: ' + this.currentRecord.invoiceNumber);
     } else {
         this.currentRecord = null;
         console.log('');
-        console.log('🎉 ALL RECORDS COMPLETED!');
+        console.log('Complete: ALL RECORDS COMPLETED!');
     }
 };
 
@@ -405,7 +405,7 @@ HeadlessAutomation.prototype.clickButton = function(buttonText) {
             return true;
         }
     }
-    console.log('❌ Button "' + buttonText + '" not found');
+    console.log('Error: Button "' + buttonText + '" not found');
     return false;
 };
 
@@ -416,7 +416,7 @@ HeadlessAutomation.prototype.fillField = function(fieldName, value) {
         if (field.onchange) field.onchange();
         return true;
     }
-    console.log('❌ Field "' + fieldName + '" not found');
+    console.log('Error: Field "' + fieldName + '" not found');
     return false;
 };
 
@@ -432,7 +432,7 @@ HeadlessAutomation.prototype.selectDropdown = function(dropdownName, value) {
             }
         }
     }
-    console.log('❌ Dropdown "' + dropdownName + '" or option "' + value + '" not found');
+    console.log('Error: Dropdown "' + dropdownName + '" or option "' + value + '" not found');
     return false;
 };
 
@@ -477,12 +477,12 @@ window.run = function() {
 // Reset function if needed
 window.reset = function() {
     document.cookie = 'automationIndex=0; path=/';
-    console.log('🔄 Reset to first record');
+    console.log('Status: Reset to first record');
 };
 
 console.log('');
-console.log('💡 TIP: Type run() to execute | reset() to start over');
-console.log('🚀 SIMPLIFIED: Always syncs to current page!');`;
+console.log('Tip: TIP: Type run() to execute | reset() to start over');
+console.log('Launch: SIMPLIFIED: Always syncs to current page!');`;
 
     document.getElementById('generatedCode').innerHTML = 
         '<div class="code-output">' + generatedCodeText + '</div>';

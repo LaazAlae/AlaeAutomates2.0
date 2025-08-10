@@ -4,7 +4,7 @@
 
 Your website now includes comprehensive security measures:
 
-### 🛡️ Protection Against Common Attacks
+### Protection Against Common Attacks
 
 - **HTML/XSS Injection**: Input sanitization with bleach library
 - **CSRF Attacks**: Flask-WTF CSRF protection with tokens
@@ -15,7 +15,7 @@ Your website now includes comprehensive security measures:
 - **Session Hijacking**: Secure session management with timeouts
 - **Information Leakage**: Sanitized error messages, no debug info in production
 
-### 🔒 Security Headers Applied
+### Security Headers Applied
 
 - **HSTS**: Enforces HTTPS connections
 - **CSP**: Content Security Policy prevents code injection
@@ -23,7 +23,7 @@ Your website now includes comprehensive security measures:
 - **Referrer Policy**: Controls referrer information leakage
 - **Feature Policy**: Disables unnecessary browser features
 
-### 📊 Security Monitoring
+### Security Monitoring
 
 - **Logging**: Security events logged to app.log
 - **Session Management**: Secure session storage with automatic cleanup
@@ -197,7 +197,7 @@ for i in {1..15}; do curl https://your-app.render.com/; done
 curl -X POST -F "pdf_file=@large_file.pdf" https://your-app.render.com/monthly_statements/process
 ```
 
-## Automatic File Cleanup 🗂️
+## Automatic File Cleanup
 
 **Problem Solved**: Your app now automatically manages storage to prevent accumulation on Render!
 
@@ -219,7 +219,7 @@ curl -X POST https://your-app.render.com/cleanup
 
 **Result**: Your Render free tier (1GB limit) will never be exceeded!
 
-## Keep-Alive System 🔄
+## Keep-Alive System
 
 **Problem Solved**: Render free tier sleeps after 15 minutes of inactivity!
 
@@ -240,7 +240,7 @@ curl -H "Authorization: Bearer YOUR_ADMIN_TOKEN" -X POST https://your-app.render
 
 **Result**: Your app stays awake 24/7 without external ping services!
 
-## Admin Authentication 🔐
+## Admin Authentication
 
 All management endpoints are now secured with Bearer token authentication:
 
@@ -264,7 +264,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" https://your-app.render.com/keep-aliv
 curl -H "Authorization: Bearer YOUR_TOKEN" -X POST https://your-app.render.com/cleanup
 ```
 
-## Performance Optimizations ⚡
+## Performance Optimizations
 
 ### Implemented:
 - **Gzip compression** - Reduces bandwidth by 60%+

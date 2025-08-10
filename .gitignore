@@ -123,6 +123,7 @@ uploads/
 results/
 separate_results/
 *.log
+app.log
 
 # OS generated files
 .DS_Store
