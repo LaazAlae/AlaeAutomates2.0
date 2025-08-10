@@ -10,7 +10,6 @@ Author: Statement Processing System
 Version: 2.0
 """
 
-from pypdf import PdfReader, PdfWriter
 import openpyxl
 import json
 import re
@@ -22,6 +21,19 @@ from datetime import datetime
 from pathlib import Path
 from difflib import get_close_matches, SequenceMatcher
 from typing import Dict, List, Tuple, Optional, Set, Any
+
+# Try PyMuPDF first (better text extraction), fall back to pypdf
+try:
+    import fitz  # PyMuPDF
+    PDF_LIBRARY = 'pymupdf'
+    print("Using PyMuPDF for optimal text extraction")
+except ImportError:
+    try:
+        from pypdf import PdfReader, PdfWriter
+        PDF_LIBRARY = 'pypdf'
+        print("Using pypdf (backup library)")
+    except ImportError:
+        raise ImportError("Neither PyMuPDF nor pypdf is available. Please install one of them.")
 
 
 class StatementProcessor:
@@ -321,35 +333,71 @@ class StatementProcessor:
     def extract_statements(self) -> List[Dict[str, Any]]:
         """Extract all statements from PDF - O(n) where n = number of pages."""
         try:
-            reader = PdfReader(str(self.pdf_path))
             statements = []
             
-            print(f"Processing {len(reader.pages)} pages with {len(self.dnm_companies)} DNM companies loaded...")
-            
-            for page_idx, page in enumerate(reader.pages):
-                page_num = page_idx + 1
+            if PDF_LIBRARY == 'pymupdf':
+                # Use PyMuPDF for better text extraction (original method)
+                doc = fitz.open(str(self.pdf_path))
+                total_pages = len(doc)
+                print(f"Processing {total_pages} pages with {len(self.dnm_companies)} DNM companies loaded... (PyMuPDF)")
                 
-                if page_num in self._processed_pages:
-                    continue
-                
-                try:
-                    text = page.extract_text()
-                    statement_data = self._extract_statement_data(text, page_num)
-                except Exception as e:
-                    print(f"Warning: Could not extract text from page {page_num}: {e}")
-                    continue
-                
-                if statement_data:
-                    statements.append(statement_data)
-                    print(f"✓ Extracted: {statement_data['company_name']}")
+                for page_idx in range(total_pages):
+                    page_num = page_idx + 1
                     
-                    # Mark pages as processed to avoid reprocessing
-                    total_pages = int(statement_data["number_of_pages"])
-                    if total_pages > 1:
-                        page_range = statement_data["page_number_in_uploaded_pdf"].split("-")
-                        self._processed_pages.update(range(int(page_range[0]), int(page_range[-1]) + 1))
-                    else:
-                        self._processed_pages.add(page_num)
+                    if page_num in self._processed_pages:
+                        continue
+                    
+                    try:
+                        text = doc.load_page(page_idx).get_text()
+                        statement_data = self._extract_statement_data(text, page_num)
+                    except Exception as e:
+                        print(f"Warning: Could not extract text from page {page_num}: {e}")
+                        continue
+                        
+                    if statement_data:
+                        statements.append(statement_data)
+                        print(f"✓ Extracted: {statement_data['company_name']}")
+                        
+                        # Mark pages as processed to avoid reprocessing
+                        total_pages_stmt = int(statement_data["number_of_pages"])
+                        if total_pages_stmt > 1:
+                            page_range = statement_data["page_number_in_uploaded_pdf"].split("-")
+                            self._processed_pages.update(range(int(page_range[0]), int(page_range[-1]) + 1))
+                        else:
+                            self._processed_pages.add(page_num)
+                
+                doc.close()
+                
+            else:
+                # Use pypdf as backup
+                reader = PdfReader(str(self.pdf_path))
+                total_pages = len(reader.pages)
+                print(f"Processing {total_pages} pages with {len(self.dnm_companies)} DNM companies loaded... (pypdf)")
+                
+                for page_idx, page in enumerate(reader.pages):
+                    page_num = page_idx + 1
+                    
+                    if page_num in self._processed_pages:
+                        continue
+                    
+                    try:
+                        text = page.extract_text()
+                        statement_data = self._extract_statement_data(text, page_num)
+                    except Exception as e:
+                        print(f"Warning: Could not extract text from page {page_num}: {e}")
+                        continue
+                    
+                    if statement_data:
+                        statements.append(statement_data)
+                        print(f"✓ Extracted: {statement_data['company_name']}")
+                        
+                        # Mark pages as processed to avoid reprocessing
+                        total_pages_stmt = int(statement_data["number_of_pages"])
+                        if total_pages_stmt > 1:
+                            page_range = statement_data["page_number_in_uploaded_pdf"].split("-")
+                            self._processed_pages.update(range(int(page_range[0]), int(page_range[-1]) + 1))
+                        else:
+                            self._processed_pages.add(page_num)
             
             return statements
             
@@ -478,15 +526,28 @@ class StatementProcessor:
         
         try:
             # Process PDFs with memory management for Render free tier
-            reader = PdfReader(str(self.pdf_path))
-            total_pages = len(reader.pages)
+            if PDF_LIBRARY == 'pymupdf':
+                # Use PyMuPDF (original method)
+                from PyPDF2 import PdfReader, PdfWriter  # For writing
+                reader = PdfReader(str(self.pdf_path))
+                total_pages = len(reader.pages)
+            else:
+                # Use pypdf
+                reader = PdfReader(str(self.pdf_path))
+                total_pages = len(reader.pages)
             
             # Process each destination separately to minimize memory usage
             for dest, statements_list in destinations.items():
                 if not statements_list:
                     continue
                 
-                writer = PdfWriter()
+                if PDF_LIBRARY == 'pymupdf':
+                    from PyPDF2 import PdfWriter
+                    writer = PdfWriter()
+                else:
+                    from pypdf import PdfWriter
+                    writer = PdfWriter()
+                    
                 pages_added = 0
                 
                 for statement in statements_list:
