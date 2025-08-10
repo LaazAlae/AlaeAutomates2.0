@@ -11,7 +11,7 @@ Version: 2.0
 """
 
 from pypdf import PdfReader, PdfWriter
-import pandas as pd
+import openpyxl
 import json
 import re
 import os
@@ -176,11 +176,18 @@ class StatementProcessor:
     def _load_dnm_companies(self) -> Tuple[List[str], Dict[str, str]]:
         """Load and pre-process DNM companies for O(1) lookups."""
         try:
-            df = pd.read_excel(self.excel_path, sheet_name='10-2018', skiprows=2)
-            companies = [
-                name for name in df.iloc[:, 0].dropna()
-                if str(name).strip() and not str(name).lower().startswith('name')
-            ]
+            # Load Excel file with openpyxl
+            workbook = openpyxl.load_workbook(self.excel_path)
+            worksheet = workbook['10-2018']
+            
+            # Extract companies from first column, skipping first 2 rows
+            companies = []
+            for row in range(3, worksheet.max_row + 1):  # Start from row 3 (skip 2 rows)
+                cell_value = worksheet.cell(row=row, column=1).value
+                if cell_value and str(cell_value).strip():
+                    name_str = str(cell_value).strip()
+                    if not name_str.lower().startswith('name'):
+                        companies.append(name_str)
             
             # Create normalized mapping for O(1) lookups
             normalized_map = {}
@@ -189,6 +196,7 @@ class StatementProcessor:
                 if normalized:
                     normalized_map[normalized] = company
             
+            workbook.close()
             return companies, normalized_map
             
         except Exception as e:
