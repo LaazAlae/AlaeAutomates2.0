@@ -1,5 +1,5 @@
 from flask import Blueprint, request, redirect, url_for, render_template, send_from_directory, jsonify
-import fitz  # PyMuPDF
+from pypdf import PdfReader, PdfWriter  # pypdf instead of PyMuPDF
 import re
 import os
 import logging
@@ -63,34 +63,46 @@ def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 def extract_invoice_numbers_and_split(input_pdf, output_folder):
-    doc = fitz.open(input_pdf)
+    reader = PdfReader(input_pdf)
     pattern = r'\b[P|R]\d{6,8}\b'  # Modified regex to match 6, 7, or 8 digits
     invoices_found = False
+    
     try:
         pages_by_invoice = {}
-        for page_num in range(len(doc)):
-            page = doc.load_page(page_num)
-            text = page.get_text()
-            invoice_numbers = re.findall(pattern, text)
-            if invoice_numbers:
-                invoices_found = True
-            for invoice_number in invoice_numbers:
-                if invoice_number not in pages_by_invoice:
-                    pages_by_invoice[invoice_number] = []
-                pages_by_invoice[invoice_number].append(page_num)
+        
+        # Extract text from each page and find invoice numbers
+        for page_num, page in enumerate(reader.pages):
+            try:
+                text = page.extract_text()
+                invoice_numbers = re.findall(pattern, text)
+                if invoice_numbers:
+                    invoices_found = True
+                for invoice_number in invoice_numbers:
+                    if invoice_number not in pages_by_invoice:
+                        pages_by_invoice[invoice_number] = []
+                    pages_by_invoice[invoice_number].append(page_num)
+            except Exception as e:
+                logging.warning(f"Could not extract text from page {page_num}: {e}")
+                continue
 
         if not invoices_found:
             return False  # No invoices found
 
+        # Create separate PDFs for each invoice
         for invoice_number, page_nums in pages_by_invoice.items():
-            output_pdf = fitz.open()
+            writer = PdfWriter()
             for page_num in page_nums:
-                output_pdf.insert_pdf(doc, from_page=page_num, to_page=page_num)
+                if page_num < len(reader.pages):
+                    writer.add_page(reader.pages[page_num])
+            
             output_filename = os.path.join(output_folder, f"{invoice_number}.pdf")
-            output_pdf.save(output_filename)
-            output_pdf.close()
-    finally:
-        doc.close()
+            with open(output_filename, 'wb') as output_file:
+                writer.write(output_file)
+                
+    except Exception as e:
+        logging.error(f"Error processing PDF: {e}")
+        return False
+        
     return True
 
 @invoices_bp.route('/')

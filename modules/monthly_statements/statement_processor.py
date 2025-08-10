@@ -10,7 +10,7 @@ Author: Statement Processing System
 Version: 2.0
 """
 
-import fitz
+from pypdf import PdfReader, PdfWriter
 import pandas as pd
 import json
 import re
@@ -20,7 +20,6 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from difflib import get_close_matches, SequenceMatcher
-from PyPDF2 import PdfReader, PdfWriter
 from typing import Dict, List, Tuple, Optional, Set, Any
 
 
@@ -313,18 +312,23 @@ class StatementProcessor:
     def extract_statements(self) -> List[Dict[str, Any]]:
         """Extract all statements from PDF - O(n) where n = number of pages."""
         try:
-            doc = fitz.open(str(self.pdf_path))
+            reader = PdfReader(str(self.pdf_path))
             statements = []
             
-            print(f"Processing {len(doc)} pages with {len(self.dnm_companies)} DNM companies loaded...")
+            print(f"Processing {len(reader.pages)} pages with {len(self.dnm_companies)} DNM companies loaded...")
             
-            for page_idx in range(len(doc)):
+            for page_idx, page in enumerate(reader.pages):
                 page_num = page_idx + 1
                 
                 if page_num in self._processed_pages:
                     continue
                 
-                statement_data = self._extract_statement_data(doc.load_page(page_idx).get_text(), page_num)
+                try:
+                    text = page.extract_text()
+                    statement_data = self._extract_statement_data(text, page_num)
+                except Exception as e:
+                    print(f"Warning: Could not extract text from page {page_num}: {e}")
+                    continue
                 
                 if statement_data:
                     statements.append(statement_data)
@@ -338,7 +342,6 @@ class StatementProcessor:
                     else:
                         self._processed_pages.add(page_num)
             
-            doc.close()
             return statements
             
         except Exception as e:

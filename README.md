@@ -93,7 +93,7 @@ AlaeAutomates 2.0 streamlines complex document processing tasks that typically r
 ### **Backend Technology**
 - **Framework**: Flask with modular blueprint architecture
 - **Security**: Flask-WTF, Flask-Limiter, Flask-Talisman, Bleach
-- **File Processing**: PyMuPDF for PDF manipulation, OpenPyXL for Excel files
+- **File Processing**: pypdf for PDF manipulation, OpenPyXL for Excel files
 - **Session Management**: Secure server-side sessions with encryption
 
 ### **Performance Stack**
