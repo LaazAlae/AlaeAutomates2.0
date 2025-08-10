@@ -305,7 +305,7 @@ body {
 
 .message.error {
     background-color: #c0c0c0;
-    border: 2px inset #c0c0c0;
+    border: 2px inset #afaeae;
     color: #000000;
 }
 

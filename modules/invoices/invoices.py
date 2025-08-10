@@ -12,7 +12,8 @@ from security import (
     validate_upload_files,
     sanitize_input,
     secure_error_response,
-    log_security_event
+    log_security_event,
+    SecurityConfig
 )
 
 invoices_bp = Blueprint('invoices', __name__)
@@ -27,21 +28,36 @@ logging.basicConfig(level=logging.INFO)
 
 @invoices_bp.route('/clear_results', methods=['POST'])
 def clear_results():
-    result_folder = os.path.abspath('separate_results')
-    logging.info(f"Attempting to clear contents of {result_folder}")
+    try:
+        result_folder = os.path.abspath('separate_results')
+        logging.info(f"Attempting to clear contents of {result_folder}")
+        
+        # Security check: ensure folder exists and is safe to clear
+        if not os.path.exists(result_folder):
+            return jsonify({'status': 'success', 'message': 'Folder does not exist'})
+        
+        if os.path.exists(result_folder):
+            for file in os.listdir(result_folder):
+                file_path = os.path.join(result_folder, file)
+                
+                # Security check: ensure path is within result folder
+                if not os.path.abspath(file_path).startswith(os.path.abspath(result_folder)):
+                    log_security_event('path_traversal_attempt_clear', {'file_path': file_path})
+                    continue
+                
+                if os.path.isfile(file_path):
+                    logging.info(f"Deleting file: {file_path}")
+                    os.remove(file_path)
+                elif os.path.isdir(file_path):
+                    logging.info(f"Deleting directory and its contents: {file_path}")
+                    shutil.rmtree(file_path)
+        
+        logging.info("Finished clearing results folder.")
+        return jsonify({'status': 'success'})
     
-    if os.path.exists(result_folder):
-        for file in os.listdir(result_folder):
-            file_path = os.path.join(result_folder, file)
-            if os.path.isfile(file_path):
-                logging.info(f"Deleting file: {file_path}")
-                os.remove(file_path)
-            elif os.path.isdir(file_path):
-                logging.info(f"Deleting directory and its contents: {file_path}")
-                shutil.rmtree(file_path)
-    
-    logging.info("Finished clearing results folder.")
-    return jsonify({'status': 'success'})
+    except Exception as e:
+        log_security_event('clear_results_error', {'error': str(e)})
+        return secure_error_response('Clear operation failed', 500)
 
 def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
@@ -83,85 +99,138 @@ def upload_file():
 
 @invoices_bp.route('/process', methods=['POST'])
 def process_file():
-    logging.info("Received a request to the upload_file route.")
-    
-    if 'file' not in request.files:
-        logging.info("No file part in the request.")
-        return jsonify({'error': 'No file part in the request'}), 400
-    
-    file = request.files['file']
-    if file.filename == '':
-        logging.info("No selected file.")
-        return jsonify({'error': 'No selected file'}), 400
-    
-    if file and allowed_file(file.filename, ALLOWED_EXTENSIONS):
-        logging.info(f"File {file.filename} is allowed and will be processed.")
+    try:
+        logging.info("Received a request to process file.")
         
-        if not os.path.exists(UPLOAD_FOLDER):
-            os.makedirs(UPLOAD_FOLDER)
-            logging.info(f"Created upload folder: {UPLOAD_FOLDER}")
+        # Check if file is present
+        if 'file' not in request.files:
+            log_security_event('missing_file', {'missing': 'file'})
+            return secure_error_response('No file provided', 400)
         
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
-        file.save(file_path)
-        logging.info(f"Saved file to {file_path}")
+        pdf_file = request.files['file']
         
-        if not os.path.exists(RESULT_FOLDER):
-            os.makedirs(RESULT_FOLDER)
-            logging.info(f"Created result folder: {RESULT_FOLDER}")
+        # Validate PDF file directly
+        from security import validate_filename, validate_file_content, SecurityConfig
         
-        result_folder = os.path.join(RESULT_FOLDER, filename.rsplit('.', 1)[0], 'separateInvoices')
-        os.makedirs(result_folder, exist_ok=True)
-        logging.info(f"Created result subfolder: {result_folder}")
+        if not pdf_file.filename:
+            log_security_event('missing_filename', {'file_type': 'PDF'})
+            return secure_error_response('No filename provided', 400)
         
-        invoices_found = extract_invoice_numbers_and_split(file_path, result_folder)
-        logging.info(f"Invoices found: {invoices_found}")
+        # Validate filename
+        if not validate_filename(pdf_file.filename):
+            log_security_event('invalid_filename', {'filename': pdf_file.filename})
+            return secure_error_response('Invalid filename', 422)
         
-        if not invoices_found:
-            message = 'The PDF you chose does not contain any invoice'
-            logging.info(message)
-            return jsonify({'error': message}), 400
+        # Validate file content
+        pdf_validation = validate_file_content(pdf_file, SecurityConfig.ALLOWED_EXTENSIONS['pdf'])
+        if not pdf_validation['valid']:
+            log_security_event('file_validation_failed', {'error': pdf_validation['error']})
+            return secure_error_response(pdf_validation['error'], 422)
+        
+        if pdf_file and pdf_file.filename.lower().endswith('.pdf'):
+            logging.info(f"File {pdf_file.filename} is allowed and will be processed.")
+            
+            if not os.path.exists(UPLOAD_FOLDER):
+                os.makedirs(UPLOAD_FOLDER)
+                logging.info(f"Created upload folder: {UPLOAD_FOLDER}")
+            
+            filename = secure_filename(pdf_file.filename)
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            pdf_file.save(file_path)
+            
+            # Set restrictive permissions
+            os.chmod(file_path, 0o600)
+            logging.info(f"Saved file to {file_path}")
+        
+            if not os.path.exists(RESULT_FOLDER):
+                os.makedirs(RESULT_FOLDER)
+                logging.info(f"Created result folder: {RESULT_FOLDER}")
+            
+            result_folder = os.path.join(RESULT_FOLDER, filename.rsplit('.', 1)[0], 'separateInvoices')
+            os.makedirs(result_folder, exist_ok=True)
+            logging.info(f"Created result subfolder: {result_folder}")
+            
+            invoices_found = extract_invoice_numbers_and_split(file_path, result_folder)
+            logging.info(f"Invoices found: {invoices_found}")
+            
+            if not invoices_found:
+                message = 'The PDF you chose does not contain any invoice'
+                logging.info(message)
+                return jsonify({'error': message}), 400
+            else:
+                zip_filename = f"{filename.rsplit('.', 1)[0]}.zip"
+                zip_path = os.path.join(RESULT_FOLDER, zip_filename)
+                
+                if not os.path.isfile(zip_path):
+                    logging.info(f"Creating zip file: {zip_filename}")
+                    with zipfile.ZipFile(zip_path, 'w') as zipf:
+                        for root, dirs, files in os.walk(result_folder):
+                            for file in files:
+                                zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), result_folder))
+                    logging.info(f"Created zip file at {zip_path}")
+                
+                message = 'Invoices separated successfully. Find PDF files in your downloads.'
+                logging.info(message)
+                return jsonify({
+                    'success': True,
+                    'message': message,
+                    'zip_filename': zip_filename,
+                    'download_url': url_for('invoices.download_file', filename=zip_filename)
+                })
         else:
-            zip_filename = f"{filename.rsplit('.', 1)[0]}.zip"
-            zip_path = os.path.join(RESULT_FOLDER, zip_filename)
-            
-            if not os.path.isfile(zip_path):
-                logging.info(f"Creating zip file: {zip_filename}")
-                with zipfile.ZipFile(zip_path, 'w') as zipf:
-                    for root, dirs, files in os.walk(result_folder):
-                        for file in files:
-                            zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), result_folder))
-                logging.info(f"Created zip file at {zip_path}")
-            
-            message = 'Invoices separated successfully. Find PDF files in your downloads.'
-            logging.info(message)
-            return jsonify({
-                'success': True,
-                'message': message,
-                'zip_filename': zip_filename,
-                'download_url': url_for('invoices.download_file', filename=zip_filename)
-            })
-    else:
-        logging.info("File is not allowed or not a PDF.")
-        return jsonify({'error': 'The file is not a valid PDF or is not allowed.'}), 400
+            logging.info("File is not allowed or not a PDF.")
+            return jsonify({'error': 'The file is not a valid PDF or is not allowed.'}), 400
+    
+    except Exception as e:
+        # Clean up files on error
+        file_path = locals().get('file_path')
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
+        
+        log_security_event('file_processing_error', {'error': str(e)})
+        return secure_error_response('Processing failed', 500)
 
 @invoices_bp.route('/downloads/<filename>')
 def download_file(filename):
-    zip_path = os.path.join(RESULT_FOLDER, filename)
+    # Import security functions
+    from security import validate_filename
+    
+    # Validate filename for security
+    if not validate_filename(filename):
+        log_security_event('invalid_download_filename', {'filename': filename})
+        return secure_error_response('Invalid filename', 422)
+    
+    # Use secure_filename to prevent path traversal
+    secure_name = secure_filename(filename)
+    zip_path = os.path.join(RESULT_FOLDER, secure_name)
+    
+    # Ensure path is within RESULT_FOLDER (prevent directory traversal)
+    if not os.path.abspath(zip_path).startswith(os.path.abspath(RESULT_FOLDER)):
+        log_security_event('path_traversal_attempt', {'requested_path': filename})
+        return secure_error_response('Access denied', 403)
+    
     if os.path.exists(zip_path):
-        return send_from_directory(RESULT_FOLDER, filename, as_attachment=True)
+        return send_from_directory(RESULT_FOLDER, secure_name, as_attachment=True)
     else:
-        return jsonify({'error': 'File not found'}), 404
+        log_security_event('file_not_found', {'filename': secure_name})
+        return secure_error_response('File not found', 404)
 
 @invoices_bp.route('/delete_separate_results', methods=['POST'])
 def delete_separate_results():
     try:
+        # Security check: validate the folder path
+        if not os.path.abspath(RESULT_FOLDER).startswith(os.getcwd()):
+            log_security_event('invalid_folder_path', {'folder': RESULT_FOLDER})
+            return secure_error_response('Invalid folder path', 403)
+        
         if os.path.exists(RESULT_FOLDER):
             shutil.rmtree(RESULT_FOLDER)
             logging.info(f"Deleted contents of {RESULT_FOLDER}")
             os.makedirs(RESULT_FOLDER)
             logging.info(f"Recreated empty result folder: {RESULT_FOLDER}")
+        
         return jsonify({'status': 'success'})
+    
     except Exception as e:
-        logging.error(f"Error deleting contents of {RESULT_FOLDER}: {e}")
-        return jsonify({'status': 'error'}), 500
+        log_security_event('delete_results_error', {'error': str(e)})
+        return secure_error_response('Delete operation failed', 500)

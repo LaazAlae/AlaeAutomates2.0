@@ -10,10 +10,8 @@ from werkzeug.utils import secure_filename
 import tempfile
 import zipfile
 
-# Import existing processor
-import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
-from statement_processor import StatementProcessor
+# Import existing processor from same directory
+from .statement_processor import StatementProcessor
 
 # Import security utilities
 from security import (

@@ -225,7 +225,6 @@ curl -H "Authorization: Bearer YOUR_TOKEN" https://your-app.com/keep-alive-stats
 ```
 AlaeAutomates2.0/
 ├── main_app.py                 # Main Flask application with security
-├── statement_processor.py      # Monthly statements processing logic
 ├── security.py                 # Security utilities and validation
 ├── cleanup_manager.py          # Automatic file cleanup system
 ├── keep_alive.py               # Keep-alive system for hosting

@@ -38,8 +38,8 @@ class SecurityConfig:
         r'^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$'  # Windows reserved names
     ]
     
-    # Session validation
-    SESSION_ID_PATTERN = r'^session_\d{8}_\d{6}$'
+    # Session validation  
+    SESSION_ID_PATTERN = r'^session_\d{8}_\d{6}_[a-f0-9]{8}$'
     MAX_SESSION_ID_LENGTH = 50
     
     # Rate limiting bypass paths (for static resources)

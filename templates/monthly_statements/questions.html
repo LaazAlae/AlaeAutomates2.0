@@ -39,6 +39,9 @@ function answerQuestion(response) {
     
     fetch('{{ url_for("monthly_statements.answer_question", session_id=session_id) }}', {
         method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+        },
         body: formData
     })
     .then(response => response.json())
