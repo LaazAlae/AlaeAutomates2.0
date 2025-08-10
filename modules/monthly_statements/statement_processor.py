@@ -477,17 +477,17 @@ class StatementProcessor:
         results = {}
         
         try:
-            # Process PDFs in chunks to manage memory
+            # Process PDFs with memory management for Render free tier
+            reader = PdfReader(str(self.pdf_path))
+            total_pages = len(reader.pages)
+            
+            # Process each destination separately to minimize memory usage
             for dest, statements_list in destinations.items():
                 if not statements_list:
                     continue
                 
                 writer = PdfWriter()
                 pages_added = 0
-                
-                # Process in smaller batches to avoid memory issues
-                reader = PdfReader(str(self.pdf_path))
-                total_pages = len(reader.pages)
                 
                 for statement in statements_list:
                     page_range = statement.get('page_number_in_uploaded_pdf', '')
@@ -509,8 +509,11 @@ class StatementProcessor:
                 
                 # Clean up memory after each destination
                 del writer
-                del reader
                 gc.collect()
+            
+            # Final cleanup
+            del reader
+            gc.collect()
             
             return results
             

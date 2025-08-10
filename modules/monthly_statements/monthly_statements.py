@@ -206,6 +206,14 @@ def process_files():
         pdf_file = request.files['pdf_file']
         excel_file = request.files['excel_file']
         
+        # Check file sizes first (Render free tier limitation)
+        pdf_size_mb = len(pdf_file.read()) / (1024 * 1024)
+        pdf_file.seek(0)  # Reset file pointer
+        
+        if pdf_size_mb > 25:  # 25MB limit for Render free tier
+            log_security_event('file_too_large', {'size_mb': pdf_size_mb})
+            return secure_error_response(f'PDF file too large ({pdf_size_mb:.1f}MB). Maximum size is 25MB for reliable processing on free hosting.', 413)
+        
         # Comprehensive file validation
         validation_result = validate_upload_files(pdf_file, excel_file)
         if not validation_result['valid']:
