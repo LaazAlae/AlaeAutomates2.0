@@ -49,10 +49,22 @@ function answerQuestion(response) {
         if (data.error) {
             showMessage(data.error, 'error');
         } else if (data.status === 'completed') {
-            showMessage('All questions completed! Redirecting...', 'success');
+            showMessage('All questions completed! Processing PDFs... This may take several minutes for large files.', 'success');
+            
+            // Show a progress indicator
+            const progressDiv = document.createElement('div');
+            progressDiv.innerHTML = `
+                <div class="progress-bar" style="margin-top: 10px;">
+                    <div class="progress-fill" style="width: 0%; animation: pulse 1.5s infinite;"></div>
+                </div>
+                <p style="text-align: center; margin-top: 5px; font-size: 11px;">Please wait while we process your documents...</p>
+            `;
+            document.getElementById('message-section').appendChild(progressDiv);
+            
+            // Longer timeout for large file processing
             setTimeout(() => {
                 window.location.href = data.redirect_url;
-            }, 1000);
+            }, 3000);
         } else {
             // Reload page to show next question
             location.reload();

@@ -17,6 +17,7 @@ import re
 import os
 import glob
 import sys
+import gc
 from datetime import datetime
 from pathlib import Path
 from difflib import get_close_matches, SequenceMatcher
@@ -476,15 +477,17 @@ class StatementProcessor:
         results = {}
         
         try:
-            reader = PdfReader(str(self.pdf_path))
-            total_pages = len(reader.pages)
-            
+            # Process PDFs in chunks to manage memory
             for dest, statements_list in destinations.items():
                 if not statements_list:
                     continue
                 
                 writer = PdfWriter()
                 pages_added = 0
+                
+                # Process in smaller batches to avoid memory issues
+                reader = PdfReader(str(self.pdf_path))
+                total_pages = len(reader.pages)
                 
                 for statement in statements_list:
                     page_range = statement.get('page_number_in_uploaded_pdf', '')
@@ -494,7 +497,7 @@ class StatementProcessor:
                             if 0 <= page_num < total_pages:
                                 writer.add_page(reader.pages[page_num])
                                 pages_added += 1
-                        except ValueError:
+                        except (ValueError, IndexError):
                             continue
                 
                 if pages_added > 0:
@@ -503,6 +506,11 @@ class StatementProcessor:
                         writer.write(f)
                     results[dest] = pages_added
                     print(f"✓ Created {output_path} with {pages_added} pages")
+                
+                # Clean up memory after each destination
+                del writer
+                del reader
+                gc.collect()
             
             return results
             

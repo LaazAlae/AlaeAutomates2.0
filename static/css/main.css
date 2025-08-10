@@ -698,10 +698,18 @@ code {
     }
 }
 
+/* Progress animation */
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
 /* Accessibility improvements */
 @media (prefers-reduced-motion: reduce) {
     .progress-fill {
         transition: none;
+        animation: none;
     }
 }
 
