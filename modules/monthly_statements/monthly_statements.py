@@ -101,6 +101,11 @@ class WebStatementProcessor:
     
     def create_results(self) -> Dict[str, Any]:
         """Create PDF results in background and return statistics immediately"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"[{self.session_id}] Starting create_results - JSON phase")
+        
         # Save JSON results first (fast operation)
         today = datetime.now().strftime("%b%d%Y").lower()
         json_path = os.path.join(RESULT_FOLDER, f"{self.session_id}_{today}.json")
@@ -110,6 +115,8 @@ class WebStatementProcessor:
             json_path = os.path.join(RESULT_FOLDER, f"{self.session_id}_{today}-{counter}.json")
             counter += 1
         
+        logger.info(f"[{self.session_id}] JSON path determined: {json_path}")
+        
         data = {
             "dnm_companies": self.processor.dnm_companies,
             "extracted_statements": self.statements,
@@ -117,9 +124,23 @@ class WebStatementProcessor:
             "processing_timestamp": datetime.now().isoformat()
         }
         
+        logger.info(f"[{self.session_id}] Creating results directory...")
         os.makedirs(RESULT_FOLDER, exist_ok=True)
+        
+        logger.info(f"[{self.session_id}] Writing JSON file with {len(self.statements)} statements...")
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
+        logger.info(f"[{self.session_id}] JSON file written successfully")
+        
+        # Initialize logging list for this session
+        if not hasattr(self, '_processing_logs'):
+            self._processing_logs = []
+        
+        def log_message(msg):
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            log_entry = f"[{timestamp}] {msg}"
+            logger.info(f"[{self.session_id}] {msg}")
+            self._processing_logs.append(log_entry)
         
         # Start PDF creation in background thread (non-blocking)
         import threading
@@ -127,13 +148,19 @@ class WebStatementProcessor:
         
         def create_pdfs_async():
             try:
+                log_message("Background PDF thread started")
                 self._pdf_creation_status = 'creating'
                 self._pdf_start_time = time.time()
                 
+                log_message(f"Starting PDF creation with {len(self.statements)} statements")
+                
                 # Create split PDFs
+                log_message("Calling processor.create_split_pdfs()...")
                 split_results = self.processor.create_split_pdfs(self.statements)
+                log_message(f"PDF creation returned: {split_results}")
                 
                 # Move PDFs to results directory
+                log_message("Moving PDFs to results directory...")
                 pdf_files = {}
                 for dest, pages in split_results.items():
                     old_file = {
@@ -143,29 +170,48 @@ class WebStatementProcessor:
                         "Natio Multi": "natioMulti.pdf"
                     }[dest]
                     
+                    log_message(f"Processing {dest}: looking for {old_file} with {pages} pages")
+                    
                     if os.path.exists(old_file):
                         new_file = os.path.join(RESULT_FOLDER, f"{self.session_id}_{old_file}")
+                        log_message(f"Moving {old_file} to {new_file}")
                         shutil.move(old_file, new_file)
                         pdf_files[dest] = {"file": new_file, "pages": pages}
+                        log_message(f"Successfully moved {dest} PDF")
+                    else:
+                        log_message(f"WARNING: {old_file} does not exist, skipping")
                 
                 self._pdf_files = pdf_files
                 self._pdf_creation_status = 'completed'
                 self._pdf_end_time = time.time()
                 
+                elapsed = self._pdf_end_time - self._pdf_start_time
+                log_message(f"PDF creation completed successfully in {elapsed:.1f} seconds")
+                log_message(f"Created {len(pdf_files)} PDF files: {list(pdf_files.keys())}")
+                
             except Exception as e:
                 self._pdf_creation_status = 'error' 
                 self._pdf_error = str(e)
+                log_message(f"ERROR in PDF creation: {str(e)}")
+                logger.error(f"[{self.session_id}] PDF creation failed", exc_info=True)
         
         # Initialize status tracking
+        log_message("Initializing PDF creation status tracking")
         self._pdf_creation_status = 'starting'
         self._pdf_files = {}
         
         # Start background thread
+        log_message("Starting background PDF creation thread...")
         pdf_thread = threading.Thread(target=create_pdfs_async, daemon=True)
         pdf_thread.start()
+        log_message("Background thread started, continuing with response")
         
         # Calculate statistics (fast operation)
+        logger.info(f"[{self.session_id}] Calculating statistics...")
         stats = self.calculate_statistics()
+        logger.info(f"[{self.session_id}] Statistics calculated")
+        
+        logger.info(f"[{self.session_id}] create_results completing, returning response")
         
         # Return immediately without waiting for PDFs
         return {
@@ -406,6 +452,21 @@ def get_processing_status(session_id):
         response['error'] = getattr(processor, '_pdf_error', 'PDF creation failed')
     
     return jsonify(response)
+
+@monthly_statements_bp.route('/processing/<session_id>/logs', methods=['GET'])
+@require_valid_session
+def get_processing_logs(session_id):
+    """Get real-time processing logs for debugging"""
+    processor = secure_session_manager.get_session(session_id)
+    if not processor:
+        return jsonify({'error': 'Session not found'}), 404
+    
+    logs = getattr(processor, '_processing_logs', [])
+    return jsonify({
+        'logs': logs,
+        'count': len(logs),
+        'session_id': session_id
+    })
 
 @monthly_statements_bp.route('/results/<session_id>')
 @require_valid_session

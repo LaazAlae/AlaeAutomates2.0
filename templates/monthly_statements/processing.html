@@ -16,6 +16,14 @@
     <div class="question-content">
         <p id="status-message">Initializing PDF processing...</p>
         <p id="elapsed-time" style="font-size: 10px; color: #666; text-align: center;"></p>
+        <div style="text-align: center; margin: 10px 0;">
+            <button onclick="toggleLogs()" class="btn" style="font-size: 12px; padding: 5px 10px;">Show Processing Details</button>
+        </div>
+    </div>
+
+    <div id="logs-section" style="display: none; margin-top: 20px;">
+        <h4>Processing Details:</h4>
+        <div id="logs-container" style="background: #f5f5f5; padding: 10px; border-radius: 5px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; white-space: pre-wrap;"></div>
     </div>
 
     <div id="message-section"></div>
@@ -26,6 +34,47 @@
 <script>
 let checkCount = 0;
 const maxChecks = 120; // 10 minutes max (5 second intervals)
+let logsVisible = false;
+let lastLogCount = 0;
+
+function toggleLogs() {
+    const logsSection = document.getElementById('logs-section');
+    const toggleButton = event.target;
+    
+    if (logsVisible) {
+        logsSection.style.display = 'none';
+        toggleButton.textContent = 'Show Processing Details';
+        logsVisible = false;
+    } else {
+        logsSection.style.display = 'block';
+        toggleButton.textContent = 'Hide Processing Details';
+        logsVisible = true;
+        fetchLogs(); // Load initial logs
+    }
+}
+
+function fetchLogs() {
+    if (!logsVisible) return;
+    
+    fetch('{{ url_for("monthly_statements.get_processing_logs", session_id=session_id) }}', {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.logs && data.logs.length > lastLogCount) {
+            const logsContainer = document.getElementById('logs-container');
+            logsContainer.textContent = data.logs.join('\n');
+            logsContainer.scrollTop = logsContainer.scrollHeight; // Auto-scroll to bottom
+            lastLogCount = data.logs.length;
+        }
+    })
+    .catch(error => {
+        console.error('Failed to fetch logs:', error);
+    });
+}
 
 function checkStatus() {
     checkCount++;
@@ -84,6 +133,11 @@ function checkStatus() {
         } else if (data.status === 'completed') {
             statusMessage.textContent = 'Statement extraction complete. Starting PDF creation...';
             progressFill.style.width = '50%';
+        }
+        
+        // Fetch logs if visible
+        if (logsVisible) {
+            fetchLogs();
         }
         
         // Continue checking if not completed and under max checks

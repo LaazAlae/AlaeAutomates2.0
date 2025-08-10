@@ -505,14 +505,23 @@ class StatementProcessor:
         return statements
     
     def create_split_pdfs(self, statements: List[Dict[str, Any]]) -> Dict[str, int]:
-        """Split PDF into destination-based files - O(n) operation."""
+        """Split PDF into destination-based files with detailed logging."""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"PDF Creation: Starting with {len(statements)} statements")
+        
         # Group statements by destination - O(n)
         destinations = {"DNM": [], "Foreign": [], "Natio Single": [], "Natio Multi": []}
         
+        logger.info("PDF Creation: Grouping statements by destination...")
         for statement in statements:
             dest = statement.get('destination', '').strip()
             if dest in destinations:
                 destinations[dest].append(statement)
+        
+        dest_counts = {dest: len(stmts) for dest, stmts in destinations.items() if stmts}
+        logger.info(f"PDF Creation: Destination counts: {dest_counts}")
         
         # Create output PDFs
         output_files = {
@@ -525,21 +534,31 @@ class StatementProcessor:
         results = {}
         
         try:
+            logger.info(f"PDF Creation: Using {PDF_LIBRARY} library")
+            
             # Process PDFs with memory management for Render free tier
             if PDF_LIBRARY == 'pymupdf':
                 # Use PyMuPDF (original method)
+                logger.info("PDF Creation: Importing PyPDF2 for writing...")
                 from PyPDF2 import PdfReader, PdfWriter  # For writing
+                logger.info(f"PDF Creation: Opening PDF file: {self.pdf_path}")
                 reader = PdfReader(str(self.pdf_path))
                 total_pages = len(reader.pages)
+                logger.info(f"PDF Creation: Source PDF has {total_pages} pages")
             else:
                 # Use pypdf
+                logger.info("PDF Creation: Using pypdf for reading...")
                 reader = PdfReader(str(self.pdf_path))
                 total_pages = len(reader.pages)
+                logger.info(f"PDF Creation: Source PDF has {total_pages} pages")
             
             # Process each destination separately to minimize memory usage
             for dest, statements_list in destinations.items():
                 if not statements_list:
+                    logger.info(f"PDF Creation: Skipping {dest} - no statements")
                     continue
+                
+                logger.info(f"PDF Creation: Processing {dest} with {len(statements_list)} statements...")
                 
                 if PDF_LIBRARY == 'pymupdf':
                     from PyPDF2 import PdfWriter
@@ -547,38 +566,52 @@ class StatementProcessor:
                 else:
                     from pypdf import PdfWriter
                     writer = PdfWriter()
-                    
+                
+                logger.info(f"PDF Creation: Created writer for {dest}")
                 pages_added = 0
                 
-                for statement in statements_list:
+                for i, statement in enumerate(statements_list):
                     page_range = statement.get('page_number_in_uploaded_pdf', '')
+                    logger.info(f"PDF Creation: {dest} statement {i+1}/{len(statements_list)}: page range '{page_range}'")
+                    
                     for page_str in page_range.split('-'):
                         try:
                             page_num = int(page_str.strip()) - 1  # Convert to 0-based index
                             if 0 <= page_num < total_pages:
+                                logger.info(f"PDF Creation: Adding page {page_num+1} to {dest}")
                                 writer.add_page(reader.pages[page_num])
                                 pages_added += 1
-                        except (ValueError, IndexError):
+                            else:
+                                logger.warning(f"PDF Creation: Page {page_num+1} out of range (1-{total_pages})")
+                        except (ValueError, IndexError) as e:
+                            logger.warning(f"PDF Creation: Invalid page number '{page_str}': {e}")
                             continue
                 
                 if pages_added > 0:
                     output_path = output_files[dest]
+                    logger.info(f"PDF Creation: Writing {dest} PDF with {pages_added} pages to {output_path}")
                     with open(output_path, 'wb') as f:
                         writer.write(f)
                     results[dest] = pages_added
-                    print(f"✓ Created {output_path} with {pages_added} pages")
+                    logger.info(f"PDF Creation: ✓ Successfully created {output_path} with {pages_added} pages")
+                else:
+                    logger.warning(f"PDF Creation: No pages added for {dest}, skipping file creation")
                 
                 # Clean up memory after each destination
+                logger.info(f"PDF Creation: Cleaning up memory for {dest}")
                 del writer
                 gc.collect()
             
             # Final cleanup
+            logger.info("PDF Creation: Final cleanup...")
             del reader
             gc.collect()
             
+            logger.info(f"PDF Creation: Completed successfully, created {len(results)} files: {list(results.keys())}")
             return results
             
         except Exception as e:
+            logger.error(f"PDF Creation: FAILED with error: {e}", exc_info=True)
             raise RuntimeError(f"Failed to create split PDFs: {e}")
     
     def save_results(self, statements: List[Dict[str, Any]], output_path: Optional[str] = None) -> str:
