@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+
+{% set show_header = true %}
+
+{% block header %}Payment Automation Code Generator{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <!-- SECTION 1: DATA INPUT -->
+    <div class="help-section">
+        <div class="help-header">1. Excel Data Input</div>
+        <div class="help-content active">
+            <p><strong>Instructions:</strong> Copy your processed Excel data (after VBA macro execution) and paste into the field below.</p>
+            <br>
+            <textarea id="excelInput" class="form-control" style="height: 150px; font-family: Courier New, monospace;" placeholder="Paste your Excel data here...
+
+Expected format:
+R130587    AMEX-1006    105.00    Wanyi Yang
+R131702    AMEX-1007    210.00    Virginia Clarke
+R132217    AMEX-1008    105.00    Smita Kumar"></textarea>
+            <br>
+            <button class="btn" onclick="parseData()">Parse Data & Generate Code</button>
+        </div>
+    </div>
+
+    <!-- SECTION 2: PARSED DATA PREVIEW -->
+    <div class="help-section" id="previewSection" style="display: none;">
+        <div class="help-header">2. Data Validation & Preview</div>
+        <div class="help-content active">
+            <div id="dataPreview"></div>
+        </div>
+    </div>
+
+    <!-- SECTION 3: GENERATED AUTOMATION CODE -->
+    <div class="help-section" id="codeSection" style="display: none;">
+        <div class="help-header">3. Generated Automation Code</div>
+        <div class="help-content active">
+            <div class="message">
+                <strong>How to use:</strong><br>
+                1. Copy the code below<br>
+                2. Navigate to batch page<br>
+                3. Open console (F12)<br>
+                4. Paste code and press Enter<br>
+                5. Type <code>run()</code> on each page to continue
+            </div>
+            <div id="generatedCode"></div>
+            <br>
+            <button class="btn" onclick="copyCode()" id="copyButton" style="display: none;">Copy Code to Clipboard</button>
+        </div>
+    </div>
+
+    <!-- SECTION 4: DEPLOYMENT INSTRUCTIONS -->
+    <div class="help-section" id="instructionsSection" style="display: none;">
+        <div class="help-header">4. Quick Reference</div>
+        <div class="help-content active">
+            <table class="data-table" style="width: 100%; margin: 10px 0;">
+                <tr>
+                    <th>What it does</th>
+                    <th>Usage Pattern</th>
+                </tr>
+                <tr>
+                    <td>
+                        • Auto-detects current page<br>
+                        • Auto-fills forms<br>
+                        • Auto-clicks buttons<br>
+                        • Remembers progress
+                    </td>
+                    <td>
+                        1. Main page: run() → clicks Add Receipt<br>
+                        2. Add Receipt page: run() → clicks By Invoice<br>
+                        3. Search page: run() → enters invoice & searches<br>
+                        4. Payment form: run() → fills all fields & saves<br>
+                        5. Repeat for next record
+                    </td>
+                </tr>
+            </table>
+            
+            <div class="alert">
+                <strong>No UI Window:</strong> Everything happens in the console. Just type <code>run()</code> on each page!
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// GLOBAL VARIABLES
+let parsedRecords = [];
+let generatedCodeText = '';
+
+// CORE FUNCTION 1: DATA PARSING
+function parseData() {
+    const input = document.getElementById('excelInput').value.trim();
+    
+    if (!input) {
+        alert('Please provide Excel data input');
+        return;
+    }
+
+    try {
+        parsedRecords = parseExcelData(input);
+        
+        if (parsedRecords.length === 0) {
+            alert('No valid data records found. Please verify input format.');
+            return;
+        }
+
+        showDataPreview();
+        generateAutomationCode();
+        
+    } catch (error) {
+        alert('Data parsing error: ' + error.message);
+    }
+}
+
+// CORE FUNCTION 2: EXCEL DATA PARSER
+function parseExcelData(input) {
+    const lines = input.split('\n');
+    const records = [];
+    
+    let startIndex = 0;
+    if (lines[0] && lines[0].toLowerCase().includes('invoice')) {
+        startIndex = 1;
+    }
+    
+    for (let i = startIndex; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const parts = line.split(/\t+|\s{2,}/);
+        
+        if (parts.length >= 4) {
+            records.push({
+                invoiceNumber: parts[0].trim(),
+                cardPaymentMethod: parts[1].trim(), 
+                settlementAmount: parts[2].trim(),
+                customer: parts[3].trim()
+            });
+        }
+    }
+    
+    return records;
+}
+
+// CORE FUNCTION 3: PREVIEW DISPLAY
+function showDataPreview() {
+    const previewDiv = document.getElementById('dataPreview');
+    const previewSection = document.getElementById('previewSection');
+    
+    let html = '<div class="alert">Successfully parsed ' + parsedRecords.length + ' payment records</div>';
+    html += '<h4>Data Validation Preview (first 10 records):</h4>';
+    html += '<table class="data-table">';
+    html += '<thead><tr><th>Invoice Number</th><th>Payment Method</th><th>Settlement Amount</th><th>Customer Name</th></tr></thead><tbody>';
+    
+    const showCount = Math.min(10, parsedRecords.length);
+    for (let i = 0; i < showCount; i++) {
+        const record = parsedRecords[i];
+        html += '<tr>';
+        html += '<td>' + record.invoiceNumber + '</td>';
+        html += '<td>' + record.cardPaymentMethod + '</td>';
+        html += '<td>' + record.settlementAmount + '</td>';
+        html += '<td>' + record.customer + '</td>';
+        html += '</tr>';
+    }
+    html += '</tbody></table>';
+    
+    if (parsedRecords.length > 10) {
+        html += '<div class="alert">Additional ' + (parsedRecords.length - 10) + ' records processed (not displayed in preview)</div>';
+    }
+    
+    previewDiv.innerHTML = html;
+    previewSection.style.display = 'block';
+}
+
+// CORE FUNCTION 4: SIMPLIFIED AUTOMATION CODE GENERATOR
+function generateAutomationCode() {
+    const dataArray = JSON.stringify(parsedRecords, null, 2);
+    
+    generatedCodeText = `// SIMPLIFIED HEADLESS PAYMENT AUTOMATION
+// Generated for ${parsedRecords.length} payment records
+// Just type run() on each page!
+
+// PAYMENT DATA
+var PAYMENT_DATA = ${dataArray};
+
+// PAGE DETECTION
+function detectPageAndStep() {
+    var url = window.location.href.toLowerCase();
+    var bodyText = document.body.textContent || document.body.innerText || '';
+    
+    if (url.indexOf('receipt_add_invoice.aspx') !== -1) {
+        var amountField = document.getElementsByName('ctl00$ContentPlaceHolder1$txtAmount')[0];
+        var customerField = document.getElementsByName('ctl00$ContentPlaceHolder1$txtCheckName')[0];
+        var paymentNumberField = document.getElementsByName('ctl00$ContentPlaceHolder1$txtNumber')[0];
+        
+        if (customerField && customerField.value && customerField.value.trim() !== '') {
+            return { page: 'PAYMENT_FORM_PAGE', step: 8 };
+        } else if (amountField && amountField.value && amountField.value.trim() !== '') {
+            return { page: 'PAYMENT_FORM_PAGE', step: 7 };
+        } else if (paymentNumberField && paymentNumberField.value && paymentNumberField.value.trim() !== '') {
+            return { page: 'PAYMENT_FORM_PAGE', step: 6 };
+        } else {
+            return { page: 'PAYMENT_FORM_PAGE', step: 4 };
+        }
+    } else if (url.indexOf('batch_page.aspx') !== -1) {
+        if (url.indexOf('view=recadd') !== -1) {
+            return { page: 'ADD_RECEIPT_PAGE', step: 1 };
+        } else if (url.indexOf('view=isrch') !== -1) {
+            var invoiceField = document.getElementsByName('ctl00$ContentPlaceHolder1$txtNumber')[0];
+            if (invoiceField && invoiceField.value && invoiceField.value.trim() !== '') {
+                return { page: 'SEARCH_PAGE', step: 3 };
+            } else {
+                return { page: 'SEARCH_PAGE', step: 2 };
+            }
+        } else {
+            if (bodyText.indexOf('Add Receipt') !== -1) {
+                return { page: 'MAIN_BATCH_PAGE', step: 0 };
+            }
+        }
+    }
+    return { page: 'UNKNOWN_PAGE', step: 0 };
+}
+
+// SIMPLIFIED AUTOMATION
+function HeadlessAutomation() {
+    var pageInfo = detectPageAndStep();
+    this.currentPageState = pageInfo.page;
+    this.processingStep = pageInfo.step;
+    
+    var cookieIndex = this.getCookie('automationIndex');
+    if (cookieIndex !== null) {
+        this.currentRecordIndex = parseInt(cookieIndex);
+    } else {
+        this.currentRecordIndex = 0;
+    }
+    
+    this.currentRecord = PAYMENT_DATA[this.currentRecordIndex];
+    
+    console.log('═══════════════════════════════════════');
+    console.log('🤖 AUTOMATION STATUS');
+    console.log('═══════════════════════════════════════');
+    console.log('📍 Page: ' + this.currentPageState);
+    console.log('📋 Record: ' + (this.currentRecordIndex + 1) + '/' + PAYMENT_DATA.length);
+    if (this.currentRecord) {
+        console.log('📝 Processing: ' + this.currentRecord.invoiceNumber + ' - ' + this.currentRecord.customer);
+        console.log('💰 Amount: $' + this.currentRecord.settlementAmount);
+    }
+    console.log('🔄 Step: ' + this.getStepName(this.processingStep));
+    console.log('═══════════════════════════════════════');
+}
+
+HeadlessAutomation.prototype.getStepName = function(step) {
+    var stepNames = [
+        'Click Add Receipt',
+        'Click By Invoice', 
+        'Enter Invoice Number',
+        'Click Search',
+        'Select Payment Type',
+        'Enter Payment Method',
+        'Enter Amount',
+        'Enter Customer Name',
+        'Click Save',
+        'Complete'
+    ];
+    return stepNames[step] || 'Unknown';
+};
+
+HeadlessAutomation.prototype.execute = function() {
+    if (!this.currentRecord) {
+        console.log('✅ ALL RECORDS COMPLETED!');
+        return;
+    }
+    
+    var self = this;
+    
+    switch (this.processingStep) {
+        case 0: // Click Add Receipt
+            console.log('🔄 Clicking "Add Receipt"...');
+            this.clickButton('Add Receipt');
+            console.log('✓ Done! Page will redirect...');
+            break;
+            
+        case 1: // Click By Invoice
+            console.log('🔄 Clicking "By Invoice"...');
+            this.clickButton('By Invoice');
+            console.log('✓ Done! Page will redirect...');
+            break;
+            
+        case 2: // Enter Invoice Number
+            var cleanInvoice = this.cleanInvoiceNumber(this.currentRecord.invoiceNumber);
+            console.log('🔄 Entering invoice: ' + cleanInvoice);
+            this.fillField('ctl00$ContentPlaceHolder1$txtNumber', cleanInvoice);
+            console.log('✓ Invoice entered!');
+            setTimeout(function() {
+                console.log('🔄 Clicking "Search"...');
+                self.clickButton('Search');
+                console.log('✓ Search clicked! Page will redirect...');
+            }, 1000);
+            break;
+            
+        case 3: // Click Search (if invoice already entered)
+            console.log('🔄 Clicking "Search"...');
+            this.clickButton('Search');
+            console.log('✓ Done! Page will redirect to payment form...');
+            break;
+            
+        case 4: // Payment form - start filling
+            console.log('🔄 Starting payment form fill...');
+            var paymentType = this.determinePaymentType(this.currentRecord.cardPaymentMethod);
+            console.log('→ Selecting payment type: ' + paymentType);
+            this.selectDropdown('ctl00$ContentPlaceHolder1$lstType', paymentType);
+            
+            setTimeout(function() {
+                console.log('→ Entering payment method: ' + self.currentRecord.cardPaymentMethod);
+                self.fillField('ctl00$ContentPlaceHolder1$txtNumber', self.currentRecord.cardPaymentMethod);
+                
+                setTimeout(function() {
+                    console.log('→ Entering amount: $' + self.currentRecord.settlementAmount);
+                    self.fillField('ctl00$ContentPlaceHolder1$txtAmount', self.currentRecord.settlementAmount);
+                    
+                    setTimeout(function() {
+                        console.log('→ Entering customer: ' + self.currentRecord.customer);
+                        self.fillField('ctl00$ContentPlaceHolder1$txtCheckName', self.currentRecord.customer);
+                        
+                        setTimeout(function() {
+                            console.log('🔄 Clicking "Save"...');
+                            self.clickButton('Save');
+                            console.log('✅ Payment saved!');
+                            
+                            self.nextRecord();
+                            console.log('📝 Ready for next record. Navigate to main batch page and run again.');
+                        }, 1000);
+                    }, 500);
+                }, 500);
+            }, 500);
+            break;
+            
+        case 5: // If payment method already selected
+        case 6: // If amount already entered
+        case 7: // If customer already entered
+            console.log('🔍 Form partially filled, completing remaining fields...');
+            var self = this;
+            setTimeout(function() { self.completeForm(); }, 500);
+            break;
+            
+        case 8: // Ready to save
+            console.log('🔄 Clicking "Save"...');
+            this.clickButton('Save');
+            console.log('✅ Payment saved!');
+            this.nextRecord();
+            console.log('📝 Ready for next record. Navigate to main batch page and run again.');
+            break;
+            
+        default:
+            console.log('❓ Unknown step: ' + this.processingStep);
+    }
+};
+
+HeadlessAutomation.prototype.completeForm = function() {
+    var self = this;
+    var amountField = document.getElementsByName('ctl00$ContentPlaceHolder1$txtAmount')[0];
+    var customerField = document.getElementsByName('ctl00$ContentPlaceHolder1$txtCheckName')[0];
+    
+    if (!amountField.value) {
+        console.log('→ Entering amount: $' + this.currentRecord.settlementAmount);
+        this.fillField('ctl00$ContentPlaceHolder1$txtAmount', this.currentRecord.settlementAmount);
+    }
+    
+    setTimeout(function() {
+        if (!customerField.value) {
+            console.log('→ Entering customer: ' + self.currentRecord.customer);
+            self.fillField('ctl00$ContentPlaceHolder1$txtCheckName', self.currentRecord.customer);
+        }
+        
+        setTimeout(function() {
+            console.log('🔄 Clicking "Save"...');
+            self.clickButton('Save');
+            console.log('✅ Payment saved!');
+            self.nextRecord();
+        }, 1000);
+    }, 500);
+};
+
+HeadlessAutomation.prototype.nextRecord = function() {
+    this.currentRecordIndex++;
+    this.setCookie('automationIndex', this.currentRecordIndex.toString());
+    
+    if (this.currentRecordIndex < PAYMENT_DATA.length) {
+        this.currentRecord = PAYMENT_DATA[this.currentRecordIndex];
+        console.log('');
+        console.log('📋 Next record: ' + this.currentRecord.invoiceNumber);
+    } else {
+        this.currentRecord = null;
+        console.log('');
+        console.log('🎉 ALL RECORDS COMPLETED!');
+    }
+};
+
+// Utility Functions
+HeadlessAutomation.prototype.clickButton = function(buttonText) {
+    var buttons = document.getElementsByTagName('input');
+    for (var i = 0; i < buttons.length; i++) {
+        if (buttons[i].value === buttonText && 
+            (buttons[i].type === 'submit' || buttons[i].type === 'button')) {
+            buttons[i].click();
+            return true;
+        }
+    }
+    console.log('❌ Button "' + buttonText + '" not found');
+    return false;
+};
+
+HeadlessAutomation.prototype.fillField = function(fieldName, value) {
+    var field = document.getElementsByName(fieldName)[0];
+    if (field) {
+        field.value = value;
+        if (field.onchange) field.onchange();
+        return true;
+    }
+    console.log('❌ Field "' + fieldName + '" not found');
+    return false;
+};
+
+HeadlessAutomation.prototype.selectDropdown = function(dropdownName, value) {
+    var dropdown = document.getElementsByName(dropdownName)[0];
+    if (dropdown) {
+        for (var i = 0; i < dropdown.options.length; i++) {
+            if (dropdown.options[i].text.indexOf(value) !== -1) {
+                dropdown.selectedIndex = i;
+                dropdown.value = dropdown.options[i].value;
+                if (dropdown.onchange) dropdown.onchange();
+                return true;
+            }
+        }
+    }
+    console.log('❌ Dropdown "' + dropdownName + '" or option "' + value + '" not found');
+    return false;
+};
+
+HeadlessAutomation.prototype.cleanInvoiceNumber = function(invoice) {
+    return invoice.replace(/^[RP]/i, '');
+};
+
+HeadlessAutomation.prototype.determinePaymentType = function(method) {
+    var methodUpper = method.toUpperCase();
+    if (methodUpper.indexOf('AMEX') !== -1) return 'AMEX';
+    if (methodUpper.indexOf('VISA') !== -1) return 'VISA';
+    if (methodUpper.indexOf('MC') !== -1) return 'MasterCard';
+    if (methodUpper.indexOf('DISC') !== -1) return 'Discover';
+    return 'Check';
+};
+
+HeadlessAutomation.prototype.setCookie = function(name, value) {
+    document.cookie = name + '=' + value + '; path=/';
+};
+
+HeadlessAutomation.prototype.getCookie = function(name) {
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.indexOf(name + '=') === 0) {
+            return cookie.substring(name.length + 1);
+        }
+    }
+    return null;
+};
+
+// INITIALIZE AND EXECUTE IMMEDIATELY
+var auto = new HeadlessAutomation();
+auto.execute();
+
+// Create run function for easy re-execution
+window.run = function() {
+    auto = new HeadlessAutomation();
+    auto.execute();
+};
+
+// Reset function if needed
+window.reset = function() {
+    document.cookie = 'automationIndex=0; path=/';
+    console.log('🔄 Reset to first record');
+};
+
+console.log('');
+console.log('💡 TIP: Type run() to execute | reset() to start over');
+console.log('🚀 SIMPLIFIED: Always syncs to current page!');`;
+
+    document.getElementById('generatedCode').innerHTML = 
+        '<div class="code-output">' + generatedCodeText + '</div>';
+    document.getElementById('codeSection').style.display = 'block';
+    document.getElementById('copyButton').style.display = 'inline-block';
+    document.getElementById('instructionsSection').style.display = 'block';
+}
+
+// UTILITY FUNCTIONS
+function copyCode() {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(generatedCodeText).then(function() {
+            const button = document.getElementById('copyButton');
+            const originalText = button.textContent;
+            button.textContent = 'Code Copied Successfully';
+            setTimeout(function() {
+                button.textContent = originalText;
+            }, 2000);
+        }).catch(function() {
+            fallbackCopy();
+        });
+    } else {
+        fallbackCopy();
+    }
+}
+
+function fallbackCopy() {
+    const textArea = document.createElement('textarea');
+    textArea.value = generatedCodeText;
+    document.body.appendChild(textArea);
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        alert('Code copied to clipboard!');
+    } catch (err) {
+        alert('Failed to copy. Please manually select and copy the code.');
+    }
+    
+    document.body.removeChild(textArea);
+}
+</script>
+{% endblock %}

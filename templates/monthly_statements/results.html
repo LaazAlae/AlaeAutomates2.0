@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% set show_header = true %}
+
+{% block header %}Monthly Statement Results{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <h3>Processing Complete!</h3>
+    
+    <div class="results-summary">
+        <h4>Summary</h4>
+        <ul>
+            <li>Total Statements: {{ results.statistics.total_statements }}</li>
+            {% for dest, count in results.statistics.destinations.items() %}
+            <li>{{ dest }}: {{ count }} statements</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="results-files">
+        <h4>Generated Files</h4>
+        {% for dest, file_info in results.pdf_files.items() %}
+        <div class="file-item">
+            <strong>{{ dest }}:</strong> {{ file_info.pages }} pages
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="results-actions">
+        <a href="{{ url_for('monthly_statements.download_results', session_id=session_id) }}" class="btn btn-primary">
+            Download All PDFs
+        </a>
+        <a href="{{ url_for('monthly_statements.monthly_statements') }}" class="btn">
+            Process Another File
+        </a>
+    </div>
+</div>
+{% endblock %}

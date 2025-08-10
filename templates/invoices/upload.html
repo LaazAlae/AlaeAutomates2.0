@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% set show_header = true %}
+
+{% block header %}Invoice Separator{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <div id="upload-section">
+        <h3>Upload PDF File for Invoice Separation</h3>
+        <p>This tool will automatically detect invoice numbers and split your PDF into separate files.</p>
+        
+        <div class="upload-area" id="upload-area">
+            <p>Drag and drop your PDF file here, or click to select</p>
+            <input type="file" id="file-input" accept=".pdf" style="display: none;">
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('file-input').click()">
+                Select PDF File
+            </button>
+        </div>
+        
+        <div id="file-info" style="display: none;">
+            <p><strong>Selected file:</strong> <span id="file-name"></span></p>
+            <button type="button" class="btn btn-primary" id="upload-btn" onclick="uploadFile()">
+                Process PDF
+            </button>
+            <button type="button" class="btn" onclick="clearFile()">
+                Clear Selection
+            </button>
+        </div>
+    </div>
+
+    <div id="progress-section" style="display: none;">
+        <h3>Processing PDF...</h3>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <p id="progress-text">Analyzing PDF structure...</p>
+    </div>
+
+    <div id="result-section" style="display: none;">
+        <div id="success-result" style="display: none;">
+            <h3>Success!</h3>
+            <p id="success-message"></p>
+            <button class="btn btn-primary" id="download-btn">Download Separated Invoices</button>
+            <button class="btn" onclick="processAnother()">Process Another File</button>
+        </div>
+        
+        <div id="error-result" style="display: none;">
+            <h3>Error</h3>
+            <p id="error-message"></p>
+            <button class="btn" onclick="processAnother()">Try Another File</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedFile = null;
+let downloadUrl = null;
+
+// File selection handlers
+document.getElementById('file-input').addEventListener('change', function(e) {
+    if (e.target.files.length > 0) {
+        selectedFile = e.target.files[0];
+        displaySelectedFile();
+    }
+});
+
+// Drag and drop handlers
+const uploadArea = document.getElementById('upload-area');
+uploadArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    uploadArea.style.backgroundColor = '#e0e0e0';
+});
+
+uploadArea.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    uploadArea.style.backgroundColor = '';
+});
+
+uploadArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    uploadArea.style.backgroundColor = '';
+    
+    if (e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        if (file.type === 'application/pdf') {
+            selectedFile = file;
+            displaySelectedFile();
+        } else {
+            showMessage('Please select a PDF file', 'error');
+        }
+    }
+});
+
+function displaySelectedFile() {
+    if (selectedFile) {
+        document.getElementById('file-name').textContent = selectedFile.name;
+        document.getElementById('file-info').style.display = 'block';
+        document.getElementById('upload-area').style.display = 'none';
+    }
+}
+
+function clearFile() {
+    selectedFile = null;
+    document.getElementById('file-input').value = '';
+    document.getElementById('file-info').style.display = 'none';
+    document.getElementById('upload-area').style.display = 'block';
+}
+
+function uploadFile() {
+    if (!selectedFile) {
+        showMessage('Please select a PDF file', 'error');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    
+    // Show progress
+    document.getElementById('upload-section').style.display = 'none';
+    document.getElementById('progress-section').style.display = 'block';
+    
+    // Simulate progress
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 90) progress = 90;
+        document.getElementById('progress-fill').style.width = progress + '%';
+        document.getElementById('progress-text').textContent = 
+            progress < 30 ? 'Uploading PDF...' :
+            progress < 60 ? 'Extracting invoice numbers...' :
+            progress < 90 ? 'Splitting into separate files...' : 'Creating download package...';
+    }, 500);
+    
+    fetch('{{ url_for("invoices.process_file") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        clearInterval(progressInterval);
+        document.getElementById('progress-fill').style.width = '100%';
+        document.getElementById('progress-section').style.display = 'none';
+        document.getElementById('result-section').style.display = 'block';
+        
+        if (data.error) {
+            document.getElementById('error-result').style.display = 'block';
+            document.getElementById('error-message').textContent = data.error;
+        } else {
+            document.getElementById('success-result').style.display = 'block';
+            document.getElementById('success-message').textContent = data.message;
+            downloadUrl = data.download_url;
+            document.getElementById('download-btn').onclick = function() {
+                window.location.href = downloadUrl;
+            };
+        }
+    })
+    .catch(error => {
+        clearInterval(progressInterval);
+        document.getElementById('progress-section').style.display = 'none';
+        document.getElementById('result-section').style.display = 'block';
+        document.getElementById('error-result').style.display = 'block';
+        document.getElementById('error-message').textContent = 'Upload failed: ' + error.message;
+    });
+}
+
+function processAnother() {
+    document.getElementById('result-section').style.display = 'none';
+    document.getElementById('success-result').style.display = 'none';
+    document.getElementById('error-result').style.display = 'none';
+    document.getElementById('upload-section').style.display = 'block';
+    clearFile();
+}
+
+function showMessage(text, type) {
+    // Simple message display (you can enhance this)
+    alert(text);
+}
+</script>
+{% endblock %}

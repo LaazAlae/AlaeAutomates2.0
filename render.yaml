@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: alaeautomates
+    env: python
+    buildCommand: pip install -r requirements_new.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT main_app:app
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        fromService: true

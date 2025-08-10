@@ -1,0 +1,722 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "MS Sans Serif", sans-serif;
+    font-size: 11px;
+    background-color: #f0f0f0;
+    overflow: hidden;
+}
+
+/* Main container */
+.main-container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Left sidebar */
+.sidebar {
+    width: 190px;
+    background-color: #8b1c1c;
+    color: white;
+    font-size: 11px;
+    font-weight: normal;
+    padding: 0;
+}
+
+.sidebar-header {
+    background-color: #8b1c1c;
+    padding: 8px 10px;
+    font-size: 15px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.sidebar-section {
+    margin-bottom: 5px;
+}
+
+.sidebar-section-title {
+    background-color: #8b1c1c;
+    color: #999999;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.sidebar-item {
+    color: white;
+    padding: 2px 15px;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: underline;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+
+.login-info {
+    color: #999999;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    margin-top: -13px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* Main content area */
+.main-content {
+    flex: 1;
+    background-color: #c0c0c0;
+    padding: 0;
+}
+
+.content-header {
+    background-color: #c0c0c0;
+    padding: 12px 15px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #000000;
+}
+
+.content-body {
+    background-color: #c0c0c0;
+    height: calc(100% - 30px);
+    padding: 15px;
+    overflow-y: auto;
+}
+
+/* Content-specific styles */
+.upload-area {
+    background-color: #e8e8e8;
+    border: 2px solid #808080;
+    border-top-color: #404040;
+    border-left-color: #404040;
+    border-bottom-color: #a0a0a0;
+    border-right-color: #a0a0a0;
+    padding: 30px;
+    text-align: center;
+    margin: 15px 0;
+    font-size: 11px;
+    color: #000000;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: bold;
+    font-size: 11px;
+    color: #000000;
+}
+
+.form-control {
+    width: 100%;
+    padding: 2px 4px;
+    border: 2px inset #c0c0c0;
+    font-size: 11px;
+    font-family: "MS Sans Serif", sans-serif;
+    background-color: #e8e8e8;
+    color: #000000;
+}
+
+.btn {
+    padding: 4px 12px;
+    border: 2px outset #000000;
+    background-color: #c0c0c0;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: "MS Sans Serif", sans-serif;
+    color: #000000;
+    margin: 2px;
+}
+
+.btn:active {
+    border: 2px inset #c0c0c0;
+}
+
+.btn-primary {
+    background-color: #c0c0c0;
+    color: #000000;
+    border: 2px outset #000000;
+}
+
+.btn-primary:active {
+    border: 2px inset #c0c0c0;
+}
+
+/* Macro content styles */
+.macro-container {
+    background-color: #b0adad;
+    border: 2px solid #808080;
+    border-top-color: #00000021;
+    border-left-color: #00000021;
+    border-bottom-color: #404040;
+    border-right-color: #404040;
+    margin-bottom: 15px;
+}
+
+.macro-header {
+    background-color: #b0adad;
+    padding: 6px 12px;
+    border-bottom: 1px solid #808080;
+    font-weight: bold;
+    font-size: 11px;
+    color: #000000;
+}
+
+.macro-code {
+    background-color: #e8e8e8;
+    font-family: "Courier New", monospace;
+    font-size: 10px;
+    padding: 12px;
+    border-bottom: 1px solid #808080;
+    height: 300px;
+    overflow: auto;
+    color: #000000;
+    white-space: pre;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.macro-instructions {
+    padding: 15px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #000000;
+}
+
+.macro-instructions h4 {
+    margin-bottom: 8px;
+    color: #000000;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.macro-instructions ol {
+    margin-left: 25px;
+}
+
+.macro-instructions ul {
+    margin-left: 25px;
+}
+
+.macro-instructions li {
+    margin-bottom: 4px;
+}
+
+/* Help and manual styles */
+.help-section {
+    background-color: #c0c0c0;
+    border: 2px solid #cecdcd;
+    border-top-color: #a9a6a6;
+    border-left-color: #a9a6a6;
+    border-bottom-color: #404040;
+    border-right-color: #404040;
+    margin-bottom: 12px;
+}
+
+.help-header {
+    background-color: #c0c0c0;
+    padding: 6px 12px;
+    border-bottom: 1px solid #808080;
+    font-weight: bold;
+    font-size: 11px;
+    color: #000000;
+    cursor: pointer;
+}
+
+.help-content {
+    padding: 15px;
+    display: none;
+    font-size: 11px;
+    color: #000000;
+    line-height: 1.4;
+}
+
+.help-content.active {
+    display: block;
+}
+
+.help-content h4 {
+    margin-bottom: 8px;
+    color: #000000;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.help-content ul {
+    margin-left: 25px;
+    margin-bottom: 10px;
+}
+
+.help-content ol {
+    margin-left: 25px;
+    margin-bottom: 10px;
+}
+
+.help-content li {
+    margin-bottom: 3px;
+}
+
+/* Invoice processor styles */
+.upload-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 18px;
+    background-color: #c0c0c0;
+    border: 2px inset #c0c0c0;
+    margin: 8px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #000080;
+    width: 0%;
+    transition: width 0.3s;
+}
+
+.message {
+    padding: 8px 12px;
+    margin: 8px 0;
+    border: 2px inset #c0c0c0;
+    font-size: 11px;
+    background-color: #c0c0c0;
+    color: #000000;
+}
+
+.message.success {
+    background-color: #c0c0c0;
+    border: 2px inset #c0c0c0;
+    color: #000000;
+}
+
+.message.error {
+    background-color: #c0c0c0;
+    border: 2px inset #c0c0c0;
+    color: #000000;
+}
+
+/* Data tables */
+.data-table {
+    width: 100%;
+    border: 2px inset #c0c0c0;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 10px 0;
+    background-color: #ffffff;
+    font-size: 11px;
+}
+
+.data-table th {
+    background-color: #c0c0c0;
+    color: #000000;
+    padding: 4px 8px;
+    text-align: left;
+    font-weight: bold;
+    border-bottom: 1px solid #808080;
+    border-right: 1px solid #808080;
+}
+
+.data-table td {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 3px 8px;
+    border-bottom: 1px solid #c0c0c0;
+    border-right: 1px solid #c0c0c0;
+}
+
+/* Text elements */
+h3, h4 {
+    color: #000000;
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+p {
+    color: #000000;
+    font-size: 11px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+/* Question buttons and results */
+.question-header {
+    margin-bottom: 15px;
+}
+
+.question-content {
+    margin-bottom: 20px;
+}
+
+.question-buttons {
+    margin-bottom: 15px;
+}
+
+.results-summary {
+    background-color: #c0c0c0;
+    border: 2px solid #808080;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-bottom-color: #404040;
+    border-right-color: #404040;
+    padding: 12px;
+    margin-bottom: 15px;
+}
+
+.results-files {
+    background-color: #c0c0c0;
+    border: 2px solid #808080;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-bottom-color: #404040;
+    border-right-color: #404040;
+    padding: 12px;
+    margin-bottom: 15px;
+}
+
+.results-actions {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.file-item {
+    margin-bottom: 5px;
+    font-size: 11px;
+    color: #000000;
+}
+
+/* Alert styles for compatibility */
+.alert {
+    padding: 8px 12px;
+    margin: 8px 0;
+    border: 2px inset #c0c0c0;
+    font-size: 11px;
+    background-color: #c0c0c0;
+    color: #000000;
+}
+
+.alert-success {
+    background-color: #c0c0c0;
+    border: 2px inset #c0c0c0;
+    color: #000000;
+}
+
+.alert-info {
+    background-color: #c0c0c0;
+    border: 2px inset #c0c0c0;
+    color: #000000;
+}
+
+/* Code output styling */
+.code-output {
+    background-color: #000000;
+    color: #ffffff;
+    font-family: "Courier New", monospace;
+    font-size: 10px;
+    padding: 12px;
+    border: 2px inset #c0c0c0;
+    max-height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    margin: 10px 0;
+}
+
+/* Hidden elements */
+.hidden {
+    display: none;
+}
+
+/* Textarea specific styling */
+textarea {
+    width: 100%;
+    padding: 4px 6px;
+    border: 2px inset #c0c0c0;
+    font-size: 11px;
+    font-family: "MS Sans Serif", sans-serif;
+    background-color: #ffffff;
+    color: #000000;
+    resize: vertical;
+}
+
+textarea:focus {
+    outline: none;
+}
+
+/* File input styling */
+input[type="file"] {
+    width: 100%;
+    padding: 4px;
+    border: 2px inset #c0c0c0;
+    font-size: 11px;
+    font-family: "MS Sans Serif", sans-serif;
+    background-color: #ffffff;
+    color: #000000;
+    cursor: pointer;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+    border: 2px outset #c0c0c0;
+    background-color: #c0c0c0;
+    color: #000000;
+    padding: 2px 8px;
+    margin-right: 8px;
+    font-size: 11px;
+    font-family: "MS Sans Serif", sans-serif;
+    cursor: pointer;
+}
+
+input[type="file"]::-webkit-file-upload-button:active {
+    border: 2px inset #c0c0c0;
+}
+
+/* Firefox file input button */
+input[type="file"]::-moz-file-upload-button {
+    border: 2px outset #c0c0c0;
+    background-color: #c0c0c0;
+    color: #000000;
+    padding: 2px 8px;
+    margin-right: 8px;
+    font-size: 11px;
+    font-family: "MS Sans Serif", sans-serif;
+    cursor: pointer;
+}
+
+input[type="file"]::-moz-file-upload-button:active {
+    border: 2px inset #c0c0c0;
+}
+
+/* Strong and code elements */
+strong {
+    color: #000000;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+code {
+    background-color: #ffffff;
+    color: #000000;
+    font-family: "Courier New", monospace;
+    font-size: 10px;
+    padding: 1px 2px;
+}
+
+/* Mobile Responsiveness */
+@media screen and (max-width: 768px) {
+    .main-container {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+    }
+    
+    .sidebar {
+        width: 100%;
+        order: 2;
+        padding: 10px;
+    }
+    
+    .sidebar-header {
+        text-align: center;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    
+    .sidebar-section {
+        display: inline-block;
+        margin: 5px 10px;
+        vertical-align: top;
+    }
+    
+    .sidebar-item {
+        padding: 4px 8px;
+        margin: 2px;
+        display: inline-block;
+        font-size: 10px;
+    }
+    
+    .main-content {
+        order: 1;
+        padding: 0;
+    }
+    
+    .content-header {
+        font-size: 14px;
+        padding: 8px 10px;
+        text-align: center;
+    }
+    
+    .content-body {
+        padding: 10px;
+        height: auto;
+        overflow-y: visible;
+    }
+    
+    .upload-container {
+        max-width: 100%;
+        margin: 0;
+    }
+    
+    .upload-area {
+        padding: 15px;
+        margin: 10px 0;
+    }
+    
+    .form-control {
+        font-size: 12px;
+        padding: 4px 6px;
+    }
+    
+    .btn {
+        font-size: 12px;
+        padding: 6px 12px;
+        margin: 4px 2px;
+        display: inline-block;
+        min-width: 80px;
+    }
+    
+    .macro-code {
+        height: 200px;
+        font-size: 9px;
+    }
+    
+    .help-section,
+    .macro-container {
+        margin-bottom: 10px;
+    }
+    
+    .help-header,
+    .macro-header {
+        font-size: 12px;
+        padding: 8px 10px;
+        text-align: center;
+    }
+    
+    .help-content,
+    .macro-instructions {
+        padding: 10px;
+        font-size: 10px;
+    }
+    
+    .data-table {
+        font-size: 10px;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .progress-bar {
+        height: 20px;
+    }
+    
+    .message {
+        font-size: 10px;
+        padding: 6px 10px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    body {
+        font-size: 10px;
+    }
+    
+    .sidebar-header {
+        font-size: 12px;
+    }
+    
+    .sidebar-section-title {
+        font-size: 10px;
+    }
+    
+    .sidebar-item {
+        font-size: 9px;
+        padding: 3px 6px;
+    }
+    
+    .content-header {
+        font-size: 12px;
+        padding: 6px 8px;
+    }
+    
+    .upload-area {
+        padding: 10px;
+    }
+    
+    .form-control {
+        font-size: 11px;
+    }
+    
+    .btn {
+        font-size: 10px;
+        padding: 4px 8px;
+        margin: 2px 1px;
+        min-width: 70px;
+    }
+    
+    .macro-code {
+        height: 150px;
+        font-size: 8px;
+    }
+    
+    .help-content,
+    .macro-instructions {
+        font-size: 9px;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    .btn,
+    .sidebar-item,
+    .help-header {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .form-control {
+        min-height: 44px;
+        padding: 8px 12px;
+    }
+    
+    input[type="file"] {
+        min-height: 44px;
+        padding: 8px;
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    .progress-fill {
+        transition: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .btn {
+        border: 3px outset #c0c0c0;
+    }
+    
+    .form-control {
+        border: 3px inset #c0c0c0;
+    }
+    
+    .help-section,
+    .macro-container {
+        border: 3px solid #808080;
+    }
+}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% set show_header = true %}
+
+{% block header %}Monthly Statement Questions{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <div class="question-header">
+        <h3>Question {{ question_state.current }} of {{ question_state.total }}</h3>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ (question_state.current / question_state.total * 100) }}%"></div>
+        </div>
+    </div>
+
+    <div class="question-content">
+        <h4>Is "{{ question_state.company_name }}" similar to "{{ question_state.similar_to }}"?</h4>
+        <p>This will help us categorize the statement correctly.</p>
+    </div>
+
+    <div class="question-buttons">
+        <button onclick="answerQuestion('y')" class="btn btn-primary">Yes</button>
+        <button onclick="answerQuestion('n')" class="btn">No</button>
+        <button onclick="answerQuestion('s')" class="btn">Skip All Remaining</button>
+        {% if question_state.can_go_back %}
+        <button onclick="answerQuestion('p')" class="btn">Previous</button>
+        {% endif %}
+    </div>
+
+    <div id="message-section"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function answerQuestion(response) {
+    const formData = new FormData();
+    formData.append('response', response);
+    
+    fetch('{{ url_for("monthly_statements.answer_question", session_id=session_id) }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showMessage(data.error, 'error');
+        } else if (data.status === 'completed') {
+            showMessage('All questions completed! Redirecting...', 'success');
+            setTimeout(() => {
+                window.location.href = data.redirect_url;
+            }, 1000);
+        } else {
+            // Reload page to show next question
+            location.reload();
+        }
+    })
+    .catch(error => {
+        showMessage('Error: ' + error.message, 'error');
+    });
+}
+
+function showMessage(text, type) {
+    const messageSection = document.getElementById('message-section');
+    messageSection.innerHTML = `<div class="message ${type}">${text}</div>`;
+}
+</script>
+{% endblock %}

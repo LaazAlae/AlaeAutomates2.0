@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}United Corporate Services{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<body>
+    <div class="main-container">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">ALAEAUTOMATES 2.0</div>
+            <div class="sidebar-header">UCS</div>
+            <div class="login-info">GIFT BY: A.LAAZIRI</div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">SEPARATOR:</div>
+                <button class="sidebar-item" onclick="navigateTo('/monthly_statements')">Monthly Statement</button>
+                <button class="sidebar-item" onclick="navigateTo('/invoices')">Invoices</button>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">EXCEL MACROS:</div>
+                <button class="sidebar-item" onclick="navigateTo('/excel_macros/cleanup')">Clean-up & Format</button>
+                <button class="sidebar-item" onclick="navigateTo('/excel_macros/sort')">Sort & Sum</button>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">ACCOUNTING:</div>
+                <button class="sidebar-item" onclick="navigateTo('/cc_batch')">Create CC batch</button>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">GENERAL:</div>
+                <button class="sidebar-item" onclick="navigateTo('/help')">Help</button>
+                <button class="sidebar-item" onclick="navigateTo('/user_manual')">User Manual</button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            {% if show_header %}
+            <div class="content-header">
+                {% block header %}{% endblock %}
+            </div>
+            {% endif %}
+            <div class="content-body">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function navigateTo(url) {
+            window.location.href = url;
+        }
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% set show_header = true %}
+
+{% block header %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="macro-container">
+    <div class="macro-header">
+        VBA Macro Code
+    </div>
+    <pre class="macro-code">{{ macro_code }}</pre>
+    <div class="macro-instructions">
+        {{ instructions|safe }}
+    </div>
+</div>
+
+<div style="margin-top: 20px;">
+    <button class="btn btn-primary" onclick="copyToClipboard()">Copy Macro Code</button>
+    <button class="btn" onclick="history.back()">Back</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyToClipboard() {
+    const macroCode = `{{ macro_code|safe }}`;
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(macroCode).then(function() {
+            alert('Macro code copied to clipboard!');
+        }).catch(function() {
+            fallbackCopy(macroCode);
+        });
+    } else {
+        fallbackCopy(macroCode);
+    }
+}
+
+function fallbackCopy(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        alert('Macro code copied to clipboard!');
+    } catch (err) {
+        alert('Failed to copy. Please manually select and copy the code.');
+    }
+    
+    document.body.removeChild(textArea);
+}
+</script>
+{% endblock %}

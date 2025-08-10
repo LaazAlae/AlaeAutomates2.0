@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% set show_header = true %}
+
+{% block header %}Monthly Statement Separator{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <div id="upload-section">
+        <h3>Upload Files for Processing</h3>
+        <form id="upload-form" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="pdf_file">PDF Statement File:</label>
+                <input type="file" id="pdf_file" name="pdf_file" accept=".pdf" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="excel_file">Excel DNM List:</label>
+                <input type="file" id="excel_file" name="excel_file" accept=".xlsx,.xls" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Process Files</button>
+        </form>
+    </div>
+
+    <div id="progress-section" style="display: none;">
+        <h3>Processing Files...</h3>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <p id="progress-text">Initializing...</p>
+    </div>
+
+    <div id="message-section"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('upload-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    const pdfFile = document.getElementById('pdf_file').files[0];
+    const excelFile = document.getElementById('excel_file').files[0];
+    
+    if (!pdfFile || !excelFile) {
+        showMessage('Please select both PDF and Excel files', 'error');
+        return;
+    }
+    
+    formData.append('pdf_file', pdfFile);
+    formData.append('excel_file', excelFile);
+    
+    // Show progress
+    document.getElementById('upload-section').style.display = 'none';
+    document.getElementById('progress-section').style.display = 'block';
+    
+    // Simulate progress
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += Math.random() * 20;
+        if (progress > 90) progress = 90;
+        document.getElementById('progress-fill').style.width = progress + '%';
+        document.getElementById('progress-text').textContent = 
+            progress < 30 ? 'Uploading files...' :
+            progress < 60 ? 'Extracting statements...' :
+            progress < 90 ? 'Processing data...' : 'Finalizing...';
+    }, 500);
+    
+    fetch('{{ url_for("monthly_statements.process_files") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        clearInterval(progressInterval);
+        document.getElementById('progress-fill').style.width = '100%';
+        
+        if (data.error) {
+            showMessage(data.error, 'error');
+            document.getElementById('upload-section').style.display = 'block';
+            document.getElementById('progress-section').style.display = 'none';
+        } else {
+            setTimeout(() => {
+                window.location.href = data.redirect_url;
+            }, 1000);
+        }
+    })
+    .catch(error => {
+        clearInterval(progressInterval);
+        showMessage('Upload failed: ' + error.message, 'error');
+        document.getElementById('upload-section').style.display = 'block';
+        document.getElementById('progress-section').style.display = 'none';
+    });
+});
+
+function showMessage(text, type) {
+    const messageSection = document.getElementById('message-section');
+    messageSection.innerHTML = `<div class="message ${type}">${text}</div>`;
+}
+</script>
+{% endblock %}

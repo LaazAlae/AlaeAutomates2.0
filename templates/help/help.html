@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% set show_header = true %}
+
+{% block header %}Help{% endblock %}
+
+{% block content %}
+<div class="help-section">
+    <div class="help-header" onclick="toggleHelp('monthly-statements')">
+        Monthly Statement Separator
+    </div>
+    <div class="help-content" id="monthly-statements">
+        <h4>What it does:</h4>
+        <p>Automatically processes monthly statement PDFs and separates them into different categories (DNM, Foreign, National Single, National Multi) based on company names and similarity matching.</p>
+        
+        <h4>When to use:</h4>
+        <ul>
+            <li>You have a monthly statement PDF with multiple companies</li>
+            <li>You need to separate statements by company type</li>
+            <li>You have a "Do Not Mail" (DNM) Excel list for reference</li>
+        </ul>
+        
+        <h4>Required files:</h4>
+        <ul>
+            <li>PDF file containing monthly statements</li>
+            <li>Excel file with DNM (Do Not Mail) company list</li>
+        </ul>
+        
+        <h4>Common issues:</h4>
+        <ul>
+            <li><strong>Processing fails:</strong> Check that both PDF and Excel files are valid and not corrupted</li>
+            <li><strong>No questions appear:</strong> The system automatically categorized all statements</li>
+            <li><strong>Wrong categorization:</strong> Update your DNM Excel list with more accurate company names</li>
+        </ul>
+    </div>
+</div>
+
+<div class="help-section">
+    <div class="help-header" onclick="toggleHelp('invoices')">
+        Invoice Separator
+    </div>
+    <div class="help-content" id="invoices">
+        <h4>What it does:</h4>
+        <p>Scans PDF files for invoice numbers (pattern: P/R followed by 6-8 digits) and automatically splits the PDF into separate files for each invoice.</p>
+        
+        <h4>When to use:</h4>
+        <ul>
+            <li>You have a large PDF with multiple invoices</li>
+            <li>You need individual PDF files for each invoice</li>
+            <li>Invoices follow the standard numbering format (P123456 or R12345678)</li>
+        </ul>
+        
+        <h4>Supported formats:</h4>
+        <ul>
+            <li>Invoice numbers starting with P or R</li>
+            <li>Followed by 6, 7, or 8 digits</li>
+            <li>Examples: P130587, R1317024, R13221789</li>
+        </ul>
+        
+        <h4>Common issues:</h4>
+        <ul>
+            <li><strong>"No invoices found":</strong> Check if invoice numbers match the expected format</li>
+            <li><strong>Missing invoices:</strong> Some invoices might use different numbering formats</li>
+            <li><strong>Duplicate invoices:</strong> Multiple pages with the same invoice number will be combined</li>
+        </ul>
+    </div>
+</div>
+
+<div class="help-section">
+    <div class="help-header" onclick="toggleHelp('excel-macros')">
+        Excel Macros
+    </div>
+    <div class="help-content" id="excel-macros">
+        <h4>What they do:</h4>
+        <p>VBA macros that automate common Excel data cleaning and formatting tasks.</p>
+        
+        <h4>Clean-up & Format Macro:</h4>
+        <ul>
+            <li>Removes empty rows and columns</li>
+            <li>Trims whitespace from cells</li>
+            <li>Applies consistent formatting</li>
+            <li>Auto-fits column widths</li>
+        </ul>
+        
+        <h4>Sort & Sum Macro:</h4>
+        <ul>
+            <li>Sorts data by specified column</li>
+            <li>Adds sum totals for numeric columns</li>
+            <li>Preserves header formatting</li>
+        </ul>
+        
+        <h4>Installation steps:</h4>
+        <ol>
+            <li>Enable macros in Excel (File > Options > Trust Center)</li>
+            <li>Press Alt+F11 to open VBA Editor</li>
+            <li>Insert > Module</li>
+            <li>Paste the macro code</li>
+            <li>Press Alt+F8 to run macros</li>
+        </ol>
+        
+        <h4>Common issues:</h4>
+        <ul>
+            <li><strong>Macros disabled:</strong> Enable macros in Excel security settings</li>
+            <li><strong>Syntax errors:</strong> Make sure to copy the complete macro code</li>
+            <li><strong>Data corruption:</strong> Always save a backup before running macros</li>
+        </ul>
+    </div>
+</div>
+
+<div class="help-section">
+    <div class="help-header" onclick="toggleHelp('cc-batch')">
+        Create CC Batch
+    </div>
+    <div class="help-content" id="cc-batch">
+        <h4>What it does:</h4>
+        <p>Generates JavaScript automation code for batch processing credit card payments in web forms. The code automatically fills forms and navigates through payment processing pages.</p>
+        
+        <h4>When to use:</h4>
+        <ul>
+            <li>You have multiple payments to process</li>
+            <li>Data is already formatted (invoice, payment method, amount, customer)</li>
+            <li>You need to speed up repetitive data entry</li>
+        </ul>
+        
+        <h4>Data format required:</h4>
+        <p>Tab-separated or space-separated columns:</p>
+        <ul>
+            <li>Column 1: Invoice Number (e.g., R130587)</li>
+            <li>Column 2: Payment Method (e.g., AMEX-1006)</li>
+            <li>Column 3: Amount (e.g., 105.00)</li>
+            <li>Column 4: Customer Name (e.g., John Smith)</li>
+        </ul>
+        
+        <h4>How to use generated code:</h4>
+        <ol>
+            <li>Copy the generated JavaScript code</li>
+            <li>Navigate to your payment processing website</li>
+            <li>Open browser console (F12)</li>
+            <li>Paste and execute the code</li>
+            <li>Type <code>run()</code> on each page to continue automation</li>
+        </ol>
+        
+        <h4>Common issues:</h4>
+        <ul>
+            <li><strong>Code not working:</strong> Check if website structure has changed</li>
+            <li><strong>Fields not filling:</strong> Verify data format matches expected columns</li>
+            <li><strong>Console errors:</strong> Some websites block JavaScript automation</li>
+        </ul>
+    </div>
+</div>
+
+<div class="help-section">
+    <div class="help-header" onclick="toggleHelp('general')">
+        General Troubleshooting
+    </div>
+    <div class="help-content" id="general">
+        <h4>File Upload Issues:</h4>
+        <ul>
+            <li>Check file size limits (usually under 50MB)</li>
+            <li>Ensure files are not corrupted</li>
+            <li>Use supported file formats only</li>
+            <li>Close files before uploading (Excel files should not be open)</li>
+        </ul>
+        
+        <h4>Browser Compatibility:</h4>
+        <ul>
+            <li>Use modern browsers (Chrome, Firefox, Safari, Edge)</li>
+            <li>Enable JavaScript</li>
+            <li>Clear browser cache if experiencing issues</li>
+        </ul>
+        
+        <h4>Performance Tips:</h4>
+        <ul>
+            <li>Process smaller batches for better performance</li>
+            <li>Close unnecessary browser tabs</li>
+            <li>Ensure stable internet connection</li>
+        </ul>
+        
+        <h4>Data Security:</h4>
+        <ul>
+            <li>Files are processed locally when possible</li>
+            <li>Temporary files are automatically cleaned up</li>
+            <li>No data is permanently stored on servers</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleHelp(sectionId) {
+    const content = document.getElementById(sectionId);
+    const isActive = content.classList.contains('active');
+    
+    // Close all sections
+    const allSections = document.querySelectorAll('.help-content');
+    allSections.forEach(section => section.classList.remove('active'));
+    
+    // Open clicked section if it wasn't active
+    if (!isActive) {
+        content.classList.add('active');
+    }
+}
+</script>
+{% endblock %}

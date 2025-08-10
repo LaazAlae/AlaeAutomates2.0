@@ -1,0 +1,424 @@
+{% extends "base.html" %}
+
+{% set show_header = true %}
+
+{% block header %}User Manual{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px;">
+    <h3>AlaeAutomates 2.0 - User Manual</h3>
+    <br>
+    
+    <div class="help-section">
+        <div class="help-header" onclick="toggleSection('overview')">
+            Overview & Getting Started
+        </div>
+        <div class="help-content" id="overview">
+            <h4>What is AlaeAutomates 2.0?</h4>
+            <p>AlaeAutomates 2.0 is a comprehensive automation suite designed for United Corporate Services (UCS) to streamline document processing, data management, and payment automation tasks.</p>
+            
+            <h4>Main Features:</h4>
+            <ul>
+                <li><strong>Monthly Statement Separator:</strong> Automatically categorizes and splits monthly statements</li>
+                <li><strong>Invoice Separator:</strong> Extracts and separates individual invoices from PDF files</li>
+                <li><strong>Excel Macros:</strong> Pre-built VBA macros for data cleanup and formatting</li>
+                <li><strong>CC Batch Creator:</strong> Generates automation code for payment processing</li>
+            </ul>
+            
+            <h4>System Requirements:</h4>
+            <ul>
+                <li>Modern web browser (Chrome, Firefox, Safari, Edge)</li>
+                <li>JavaScript enabled</li>
+                <li>Internet connection</li>
+                <li>Microsoft Excel (for macro features)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="help-section">
+        <div class="help-header" onclick="toggleSection('monthly-separator')">
+            Monthly Statement Separator - Detailed Guide
+        </div>
+        <div class="help-content" id="monthly-separator">
+            <h4>Purpose:</h4>
+            <p>Processes monthly statements and automatically separates them into categories: DNM (Do Not Mail), Foreign, National Single, and National Multi based on company matching.</p>
+            
+            <h4>Step-by-Step Process:</h4>
+            <ol>
+                <li><strong>Prepare Files:</strong>
+                    <ul>
+                        <li>PDF file with monthly statements</li>
+                        <li>Excel file with DNM (Do Not Mail) company list</li>
+                    </ul>
+                </li>
+                <li><strong>Upload Files:</strong>
+                    <ul>
+                        <li>Click "Monthly Statement" in the sidebar</li>
+                        <li>Select your PDF file and Excel file</li>
+                        <li>Click "Process Files"</li>
+                    </ul>
+                </li>
+                <li><strong>Answer Questions (if needed):</strong>
+                    <ul>
+                        <li>System may ask about company similarities</li>
+                        <li>Answer "Yes" if companies are the same/similar</li>
+                        <li>Answer "No" if they are different</li>
+                        <li>Use "Skip All" to skip remaining questions</li>
+                        <li>Use "Previous" to go back and change answers</li>
+                    </ul>
+                </li>
+                <li><strong>Download Results:</strong>
+                    <ul>
+                        <li>View processing statistics</li>
+                        <li>Download separated PDF files as a ZIP</li>
+                    </ul>
+                </li>
+            </ol>
+            
+            <h4>Understanding the Output:</h4>
+            <ul>
+                <li><strong>DNM.pdf:</strong> Companies on the Do Not Mail list</li>
+                <li><strong>Foreign.pdf:</strong> International companies</li>
+                <li><strong>natioSingle.pdf:</strong> Single-location national companies</li>
+                <li><strong>natioMulti.pdf:</strong> Multi-location national companies</li>
+            </ul>
+            
+            <h4>Tips for Best Results:</h4>
+            <ul>
+                <li>Keep your DNM Excel list updated with accurate company names</li>
+                <li>Review questions carefully - your answers determine the final categorization</li>
+                <li>Use descriptive file names for easy identification</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="help-section">
+        <div class="help-header" onclick="toggleSection('invoice-separator')">
+            Invoice Separator - Detailed Guide
+        </div>
+        <div class="help-content" id="invoice-separator">
+            <h4>Purpose:</h4>
+            <p>Automatically detects invoice numbers in PDF files and creates separate PDF files for each invoice.</p>
+            
+            <h4>Supported Invoice Formats:</h4>
+            <ul>
+                <li>Pattern: [P|R] followed by 6-8 digits</li>
+                <li>Examples: P123456, R1234567, P12345678, R123456</li>
+                <li>Case insensitive (p123456 works the same as P123456)</li>
+            </ul>
+            
+            <h4>Step-by-Step Process:</h4>
+            <ol>
+                <li><strong>Access Tool:</strong> Click "Invoices" in the sidebar</li>
+                <li><strong>Upload PDF:</strong> 
+                    <ul>
+                        <li>Drag and drop PDF file or click to select</li>
+                        <li>Only PDF files are accepted</li>
+                        <li>File size limit: typically 50MB</li>
+                    </ul>
+                </li>
+                <li><strong>Processing:</strong>
+                    <ul>
+                        <li>System scans each page for invoice numbers</li>
+                        <li>Creates separate PDF for each unique invoice</li>
+                        <li>Multiple pages with same invoice are combined</li>
+                    </ul>
+                </li>
+                <li><strong>Download:</strong>
+                    <ul>
+                        <li>Download ZIP file containing all separated invoices</li>
+                        <li>Each PDF is named with the invoice number</li>
+                    </ul>
+                </li>
+            </ol>
+            
+            <h4>Troubleshooting:</h4>
+            <ul>
+                <li><strong>"No invoices found":</strong> Check if invoice numbers follow the expected pattern</li>
+                <li><strong>Missing invoices:</strong> Invoice numbers might be in images or different formats</li>
+                <li><strong>Too many files:</strong> System might be picking up reference numbers - verify the pattern</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="help-section">
+        <div class="help-header" onclick="toggleSection('excel-macros-detailed')">
+            Excel Macros - Detailed Guide
+        </div>
+        <div class="help-content" id="excel-macros-detailed">
+            <h4>Purpose:</h4>
+            <p>Provide ready-to-use VBA macros for common Excel data processing tasks.</p>
+            
+            <h4>Clean-up & Format Macro:</h4>
+            <p><strong>What it does:</strong></p>
+            <ul>
+                <li>Removes all empty rows and columns</li>
+                <li>Trims whitespace from all cells</li>
+                <li>Applies Arial 10pt font consistently</li>
+                <li>Adds borders to data cells</li>
+                <li>Auto-fits column widths</li>
+                <li>Formats first row as header (bold, gray background)</li>
+            </ul>
+            
+            <p><strong>When to use:</strong></p>
+            <ul>
+                <li>Data imported from external sources</li>
+                <li>Spreadsheets with inconsistent formatting</li>
+                <li>Before presenting data to others</li>
+            </ul>
+            
+            <h4>Sort & Sum Macro:</h4>
+            <p><strong>What it does:</strong></p>
+            <ul>
+                <li>Sorts data by user-specified column</li>
+                <li>Preserves header row during sorting</li>
+                <li>Optionally adds sum totals for numeric columns</li>
+                <li>Formats total row with borders and bold text</li>
+                <li>Auto-fits columns after processing</li>
+            </ul>
+            
+            <p><strong>When to use:</strong></p>
+            <ul>
+                <li>Need to organize data by specific criteria</li>
+                <li>Want quick totals for financial data</li>
+                <li>Preparing reports or summaries</li>
+            </ul>
+            
+            <h4>Installation Instructions:</h4>
+            <ol>
+                <li><strong>Enable Macros:</strong>
+                    <ul>
+                        <li>File > Options > Trust Center > Trust Center Settings</li>
+                        <li>Macro Settings > Enable all macros</li>
+                        <li>Or use "Disable all macros with notification" for security</li>
+                    </ul>
+                </li>
+                <li><strong>Create Macro:</strong>
+                    <ul>
+                        <li>Press Alt+F11 to open VBA Editor</li>
+                        <li>Insert > Module (creates new code module)</li>
+                        <li>Copy and paste the macro code</li>
+                        <li>Save the file (Ctrl+S)</li>
+                    </ul>
+                </li>
+                <li><strong>Run Macro:</strong>
+                    <ul>
+                        <li>Return to Excel (Alt+Tab or close VBA Editor)</li>
+                        <li>Press Alt+F8 to open Macro dialog</li>
+                        <li>Select the macro name and click Run</li>
+                    </ul>
+                </li>
+            </ol>
+            
+            <h4>Safety Tips:</h4>
+            <ul>
+                <li>Always save a backup copy before running macros</li>
+                <li>Test on a small dataset first</li>
+                <li>Macros cannot be undone with Ctrl+Z</li>
+                <li>Close the Excel file and reopen if macros cause issues</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="help-section">
+        <div class="help-header" onclick="toggleSection('cc-batch-detailed')">
+            CC Batch Creator - Detailed Guide
+        </div>
+        <div class="help-content" id="cc-batch-detailed">
+            <h4>Purpose:</h4>
+            <p>Generates JavaScript automation code for processing multiple credit card payments in web-based systems.</p>
+            
+            <h4>Data Preparation:</h4>
+            <p><strong>Required Format (tab or space separated):</strong></p>
+            <table class="data-table">
+                <tr><th>Column 1</th><th>Column 2</th><th>Column 3</th><th>Column 4</th></tr>
+                <tr><td>Invoice Number</td><td>Payment Method</td><td>Amount</td><td>Customer Name</td></tr>
+                <tr><td>R130587</td><td>AMEX-1006</td><td>105.00</td><td>John Smith</td></tr>
+                <tr><td>R131702</td><td>VISA-2007</td><td>210.00</td><td>Jane Doe</td></tr>
+            </table>
+            
+            <p><strong>Supported Payment Methods:</strong></p>
+            <ul>
+                <li>AMEX (American Express)</li>
+                <li>VISA</li>
+                <li>MC (MasterCard)</li>
+                <li>DISC (Discover)</li>
+                <li>Any other text defaults to "Check"</li>
+            </ul>
+            
+            <h4>Step-by-Step Usage:</h4>
+            <ol>
+                <li><strong>Prepare Data:</strong>
+                    <ul>
+                        <li>Use Excel VBA macros to clean and format your data</li>
+                        <li>Copy the processed data (Ctrl+C)</li>
+                    </ul>
+                </li>
+                <li><strong>Generate Code:</strong>
+                    <ul>
+                        <li>Click "Create CC batch" in the sidebar</li>
+                        <li>Paste your data in the text area</li>
+                        <li>Click "Parse Data & Generate Code"</li>
+                        <li>Review the data preview for accuracy</li>
+                    </ul>
+                </li>
+                <li><strong>Use Generated Code:</strong>
+                    <ul>
+                        <li>Copy the generated JavaScript code</li>
+                        <li>Navigate to your payment processing website</li>
+                        <li>Open browser console (F12 > Console tab)</li>
+                        <li>Paste the code and press Enter</li>
+                    </ul>
+                </li>
+                <li><strong>Execute Automation:</strong>
+                    <ul>
+                        <li>Type <code>run()</code> in console to start/continue</li>
+                        <li>Code will automatically detect current page</li>
+                        <li>Follow the console messages for progress</li>
+                        <li>Use <code>reset()</code> to start over if needed</li>
+                    </ul>
+                </li>
+            </ol>
+            
+            <h4>How the Automation Works:</h4>
+            <ul>
+                <li><strong>Page Detection:</strong> Automatically identifies current page</li>
+                <li><strong>Form Filling:</strong> Enters invoice numbers, amounts, customer names</li>
+                <li><strong>Navigation:</strong> Clicks appropriate buttons to advance</li>
+                <li><strong>Progress Tracking:</strong> Remembers current record using browser cookies</li>
+                <li><strong>Error Handling:</strong> Provides clear feedback for issues</li>
+            </ul>
+            
+            <h4>Important Notes:</h4>
+            <ul>
+                <li>Code is designed for specific web form structures</li>
+                <li>Test with a few records first</li>
+                <li>Keep the console open to monitor progress</li>
+                <li>Don't refresh the page during automation</li>
+                <li>Use <code>run()</code> command on each page as directed</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="help-section">
+        <div class="help-header" onclick="toggleSection('workflow')">
+            Typical Workflow & Best Practices
+        </div>
+        <div class="help-content" id="workflow">
+            <h4>Recommended Daily Workflow:</h4>
+            <ol>
+                <li><strong>Morning Setup:</strong>
+                    <ul>
+                        <li>Update DNM Excel list if needed</li>
+                        <li>Gather all PDFs for processing</li>
+                        <li>Ensure Excel macros are enabled</li>
+                    </ul>
+                </li>
+                <li><strong>Process Monthly Statements:</strong>
+                    <ul>
+                        <li>Use Monthly Statement Separator</li>
+                        <li>Answer questions carefully for better future automation</li>
+                        <li>Download and organize separated files</li>
+                    </ul>
+                </li>
+                <li><strong>Handle Individual Invoices:</strong>
+                    <ul>
+                        <li>Use Invoice Separator for bulk PDFs</li>
+                        <li>Verify invoice numbers are correctly identified</li>
+                        <li>Organize separated invoices by date or client</li>
+                    </ul>
+                </li>
+                <li><strong>Data Processing:</strong>
+                    <ul>
+                        <li>Use Excel Clean-up & Format macro on raw data</li>
+                        <li>Apply Sort & Sum macro for organized reports</li>
+                        <li>Save formatted data for payment processing</li>
+                    </ul>
+                </li>
+                <li><strong>Batch Payments:</strong>
+                    <ul>
+                        <li>Use CC Batch Creator for automated payment entry</li>
+                        <li>Process in smaller batches (10-20 records at a time)</li>
+                        <li>Monitor console for any errors or issues</li>
+                    </ul>
+                </li>
+            </ol>
+            
+            <h4>Best Practices:</h4>
+            <ul>
+                <li><strong>Backup:</strong> Always keep copies of original files</li>
+                <li><strong>Naming:</strong> Use consistent, descriptive file names</li>
+                <li><strong>Verification:</strong> Spot-check automated results for accuracy</li>
+                <li><strong>Updates:</strong> Keep DNM lists current for better automation</li>
+                <li><strong>Testing:</strong> Test new workflows with small datasets first</li>
+            </ul>
+            
+            <h4>Error Prevention:</h4>
+            <ul>
+                <li>Check file formats before uploading</li>
+                <li>Ensure files are not password-protected</li>
+                <li>Close Excel files before uploading</li>
+                <li>Use stable internet connection for uploads</li>
+                <li>Don't navigate away during processing</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="help-section">
+        <div class="help-header" onclick="toggleSection('support')">
+            Support & Contact Information
+        </div>
+        <div class="help-content" id="support">
+            <h4>System Information:</h4>
+            <ul>
+                <li><strong>Version:</strong> AlaeAutomates 2.0</li>
+                <li><strong>Developer:</strong> A.LAAZIRI</li>
+                <li><strong>Organization:</strong> United Corporate Services (UCS)</li>
+            </ul>
+            
+            <h4>For Technical Support:</h4>
+            <ul>
+                <li>Document the specific error or issue</li>
+                <li>Note which browser and version you're using</li>
+                <li>Save copies of problem files (without sensitive data)</li>
+                <li>Record the exact steps that led to the issue</li>
+            </ul>
+            
+            <h4>Self-Help Resources:</h4>
+            <ul>
+                <li>Check the Help section for common issues</li>
+                <li>Try using a different browser</li>
+                <li>Clear browser cache and cookies</li>
+                <li>Disable browser extensions temporarily</li>
+                <li>Restart browser and try again</li>
+            </ul>
+            
+            <h4>System Maintenance:</h4>
+            <ul>
+                <li>Temporary files are automatically cleaned up</li>
+                <li>No personal data is permanently stored</li>
+                <li>Processing happens securely in your browser</li>
+                <li>No special maintenance required from users</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleSection(sectionId) {
+    const content = document.getElementById(sectionId);
+    const isActive = content.classList.contains('active');
+    
+    // Close all sections
+    const allSections = document.querySelectorAll('.help-content');
+    allSections.forEach(section => section.classList.remove('active'));
+    
+    // Open clicked section if it wasn't active
+    if (!isActive) {
+        content.classList.add('active');
+    }
+}
+</script>
+{% endblock %}
