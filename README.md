@@ -1,4 +1,4 @@
-# 🚀 AlaeAutomates 2.0
+#AlaeAutomates 2.0
 
 **Enterprise-Grade Document Processing & Automation Platform**
 
@@ -59,7 +59,7 @@ AlaeAutomates 2.0 streamlines complex document processing tasks that typically r
 - **Error Handling**: Prevents information leakage in error messages
 - **Access Control**: Secure admin endpoints for system management
 
-## ⚡ **Performance & Optimization**
+## **Performance & Optimization**
 
 ### **Production-Ready Features**
 - **Gzip Compression**: 60%+ bandwidth reduction with automatic compression
@@ -143,7 +143,7 @@ Access the application at `http://localhost:5000`
    - `ADMIN_TOKEN=<generate-secure-token>`
 3. Deploy automatically with zero configuration
 
-## 🔧 **Configuration**
+## **Configuration**
 
 ### **Environment Variables**
 ```bash
