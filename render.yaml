@@ -2,12 +2,24 @@ services:
   - type: web
     name: alaeautomates
     env: python
-    buildCommand: pip install -r requirements_new.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT main_app:app
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --timeout 120 --workers 1 --threads 2 main_app:app
     plan: free
-    healthCheckPath: /
+    healthCheckPath: /health
     envVars:
       - key: FLASK_ENV
         value: production
       - key: PORT
         fromService: true
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WTF_CSRF_TIME_LIMIT
+        value: "3600"
+      - key: KEEP_ALIVE_URL
+        value: https://alaeautomates.onrender.com
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: MAX_CONTENT_LENGTH
+        value: "52428800"
+      - key: PYTHONPATH
+        value: /opt/render/project/src
