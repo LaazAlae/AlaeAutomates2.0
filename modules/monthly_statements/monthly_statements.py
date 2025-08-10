@@ -100,8 +100,8 @@ class WebStatementProcessor:
         }
     
     def create_results(self) -> Dict[str, Any]:
-        """Create PDF results and return statistics"""
-        # Save JSON results
+        """Create PDF results in background and return statistics immediately"""
+        # Save JSON results first (fast operation)
         today = datetime.now().strftime("%b%d%Y").lower()
         json_path = os.path.join(RESULT_FOLDER, f"{self.session_id}_{today}.json")
         
@@ -121,31 +121,58 @@ class WebStatementProcessor:
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         
-        # Create split PDFs
-        split_results = self.processor.create_split_pdfs(self.statements)
+        # Start PDF creation in background thread (non-blocking)
+        import threading
+        import time
         
-        # Move PDFs to results directory
-        pdf_files = {}
-        for dest, pages in split_results.items():
-            old_file = {
-                "DNM": "DNM.pdf",
-                "Foreign": "Foreign.pdf", 
-                "Natio Single": "natioSingle.pdf",
-                "Natio Multi": "natioMulti.pdf"
-            }[dest]
-            
-            if os.path.exists(old_file):
-                new_file = os.path.join(RESULT_FOLDER, f"{self.session_id}_{old_file}")
-                shutil.move(old_file, new_file)
-                pdf_files[dest] = {"file": new_file, "pages": pages}
+        def create_pdfs_async():
+            try:
+                self._pdf_creation_status = 'creating'
+                self._pdf_start_time = time.time()
+                
+                # Create split PDFs
+                split_results = self.processor.create_split_pdfs(self.statements)
+                
+                # Move PDFs to results directory
+                pdf_files = {}
+                for dest, pages in split_results.items():
+                    old_file = {
+                        "DNM": "DNM.pdf",
+                        "Foreign": "Foreign.pdf", 
+                        "Natio Single": "natioSingle.pdf",
+                        "Natio Multi": "natioMulti.pdf"
+                    }[dest]
+                    
+                    if os.path.exists(old_file):
+                        new_file = os.path.join(RESULT_FOLDER, f"{self.session_id}_{old_file}")
+                        shutil.move(old_file, new_file)
+                        pdf_files[dest] = {"file": new_file, "pages": pages}
+                
+                self._pdf_files = pdf_files
+                self._pdf_creation_status = 'completed'
+                self._pdf_end_time = time.time()
+                
+            except Exception as e:
+                self._pdf_creation_status = 'error' 
+                self._pdf_error = str(e)
         
-        # Calculate statistics
+        # Initialize status tracking
+        self._pdf_creation_status = 'starting'
+        self._pdf_files = {}
+        
+        # Start background thread
+        pdf_thread = threading.Thread(target=create_pdfs_async, daemon=True)
+        pdf_thread.start()
+        
+        # Calculate statistics (fast operation)
         stats = self.calculate_statistics()
         
+        # Return immediately without waiting for PDFs
         return {
-            "pdf_files": pdf_files,
+            "pdf_files": {},  # Will be populated asynchronously
             "json_file": json_path,
-            "statistics": stats
+            "statistics": stats,
+            "pdf_status": "creating"  # Indicate PDFs are being created
         }
     
     def calculate_statistics(self) -> Dict[str, Any]:
@@ -353,18 +380,30 @@ def get_processing_status(session_id):
         return jsonify({'status': 'error', 'message': 'Session not found'}), 404
     
     status = getattr(processor, '_processing_status', 'unknown')
+    pdf_status = getattr(processor, '_pdf_creation_status', 'unknown')
     start_time = getattr(processor, '_start_time', None)
     
-    response = {'status': status}
+    response = {'status': status, 'pdf_status': pdf_status}
     
     if start_time:
         elapsed = (datetime.now() - start_time).total_seconds()
         response['elapsed'] = int(elapsed)
     
-    if status == 'completed':
+    # Check PDF creation timing if available
+    pdf_start = getattr(processor, '_pdf_start_time', None)
+    pdf_end = getattr(processor, '_pdf_end_time', None)
+    if pdf_start:
+        import time
+        pdf_elapsed = (pdf_end or time.time()) - pdf_start
+        response['pdf_elapsed'] = int(pdf_elapsed)
+    
+    # Overall completion check
+    if status == 'completed' and pdf_status == 'completed':
         response['redirect_url'] = url_for('monthly_statements.results_page', session_id=session_id)
     elif status == 'error':
         response['error'] = getattr(processor, '_error_message', 'Unknown error')
+    elif pdf_status == 'error':
+        response['error'] = getattr(processor, '_pdf_error', 'PDF creation failed')
     
     return jsonify(response)
 
@@ -378,9 +417,15 @@ def results_page(session_id):
     if not hasattr(processor, '_results'):
         processor._results = processor.create_results()
     
+    # Get the results and update with async PDF files if ready
+    results = processor._results.copy()
+    if hasattr(processor, '_pdf_files') and processor._pdf_files:
+        results['pdf_files'] = processor._pdf_files
+        results['pdf_status'] = 'completed'
+    
     return render_template('monthly_statements/results.html', 
                          session_id=session_id, 
-                         results=processor._results)
+                         results=results)
 
 @monthly_statements_bp.route('/download/<session_id>')
 @require_valid_session

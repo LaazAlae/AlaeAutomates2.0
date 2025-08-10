@@ -49,28 +49,41 @@ function checkStatus() {
             elapsedTime.textContent = `Processing time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
         
-        switch(data.status) {
-            case 'processing':
-                statusMessage.textContent = 'Starting PDF processing...';
-                progressFill.style.width = '25%';
-                break;
-            case 'creating_pdfs':
-                statusMessage.textContent = 'Creating PDF files... This may take several minutes for large documents.';
-                progressFill.style.width = '75%';
-                break;
-            case 'completed':
-                statusMessage.textContent = 'Processing complete! Redirecting...';
-                progressFill.style.width = '100%';
-                progressFill.style.animation = 'none';
-                setTimeout(() => {
-                    window.location.href = data.redirect_url;
-                }, 1500);
-                return; // Stop checking
-            case 'error':
-                statusMessage.textContent = 'An error occurred during processing.';
-                showMessage('Error: ' + (data.error || 'Unknown error'), 'error');
-                progressFill.style.animation = 'none';
-                return; // Stop checking
+        // Update status based on both processing and PDF creation
+        if (data.status === 'error' || data.pdf_status === 'error') {
+            statusMessage.textContent = 'An error occurred during processing.';
+            showMessage('Error: ' + (data.error || 'PDF creation failed'), 'error');
+            progressFill.style.animation = 'none';
+            return; // Stop checking
+        }
+        
+        // Handle completion when both processing and PDF creation are done
+        if (data.status === 'completed' && data.pdf_status === 'completed') {
+            statusMessage.textContent = 'Processing complete! Redirecting...';
+            progressFill.style.width = '100%';
+            progressFill.style.animation = 'none';
+            setTimeout(() => {
+                window.location.href = data.redirect_url;
+            }, 1500);
+            return; // Stop checking
+        }
+        
+        // Show current step based on status
+        if (data.status === 'processing') {
+            statusMessage.textContent = 'Extracting statements from PDF...';
+            progressFill.style.width = '25%';
+        } else if (data.status === 'completed' && data.pdf_status === 'creating') {
+            statusMessage.textContent = 'Creating PDF files in background... This prevents timeouts on large files.';
+            progressFill.style.width = '75%';
+            // Show PDF processing time if available
+            if (data.pdf_elapsed) {
+                const pdfMinutes = Math.floor(data.pdf_elapsed / 60);
+                const pdfSeconds = data.pdf_elapsed % 60;
+                statusMessage.textContent += ` (PDF processing: ${pdfMinutes}:${pdfSeconds.toString().padStart(2, '0')})`;
+            }
+        } else if (data.status === 'completed') {
+            statusMessage.textContent = 'Statement extraction complete. Starting PDF creation...';
+            progressFill.style.width = '50%';
         }
         
         // Continue checking if not completed and under max checks
