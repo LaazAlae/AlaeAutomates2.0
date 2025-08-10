@@ -306,16 +306,67 @@ def answer_question(session_id):
     result = processor.process_question_response(response)
     
     if result.get("completed"):
-        results = processor.create_results()
+        # Start background PDF processing
+        processor._processing_status = 'processing'
+        processor._start_time = datetime.now()
+        
+        import threading
+        def background_pdf_creation():
+            try:
+                processor._processing_status = 'creating_pdfs'
+                results = processor.create_results()
+                processor._results = results
+                processor._processing_status = 'completed'
+            except Exception as e:
+                processor._processing_status = 'error'
+                processor._error_message = str(e)
+        
+        thread = threading.Thread(target=background_pdf_creation)
+        thread.daemon = True
+        thread.start()
+        
         return jsonify({
-            'status': 'completed',
-            'redirect_url': url_for('monthly_statements.results_page', session_id=session_id)
+            'status': 'processing',
+            'redirect_url': url_for('monthly_statements.processing_status', session_id=session_id)
         })
     else:
         return jsonify({
             'status': 'continue',
             'question_state': result
         })
+
+@monthly_statements_bp.route('/processing/<session_id>')
+@require_valid_session
+def processing_status(session_id):
+    processor = secure_session_manager.get_session(session_id)
+    if not processor:
+        log_security_event('invalid_session_access', {'session_id': session_id, 'endpoint': 'processing_status'})
+        return render_template('monthly_statements/error.html', error='Session not found'), 404
+    
+    return render_template('monthly_statements/processing.html', session_id=session_id)
+
+@monthly_statements_bp.route('/processing/<session_id>/status', methods=['GET'])
+@require_valid_session
+def get_processing_status(session_id):
+    processor = secure_session_manager.get_session(session_id)
+    if not processor:
+        return jsonify({'status': 'error', 'message': 'Session not found'}), 404
+    
+    status = getattr(processor, '_processing_status', 'unknown')
+    start_time = getattr(processor, '_start_time', None)
+    
+    response = {'status': status}
+    
+    if start_time:
+        elapsed = (datetime.now() - start_time).total_seconds()
+        response['elapsed'] = int(elapsed)
+    
+    if status == 'completed':
+        response['redirect_url'] = url_for('monthly_statements.results_page', session_id=session_id)
+    elif status == 'error':
+        response['error'] = getattr(processor, '_error_message', 'Unknown error')
+    
+    return jsonify(response)
 
 @monthly_statements_bp.route('/results/<session_id>')
 @require_valid_session

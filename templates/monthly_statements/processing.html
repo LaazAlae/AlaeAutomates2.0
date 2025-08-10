@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% set show_header = true %}
+
+{% block header %}Processing Monthly Statements{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <div class="question-header">
+        <h3>Processing Your Files</h3>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 10%; animation: pulse 1.5s infinite;"></div>
+        </div>
+    </div>
+
+    <div class="question-content">
+        <p id="status-message">Initializing PDF processing...</p>
+        <p id="elapsed-time" style="font-size: 10px; color: #666; text-align: center;"></p>
+    </div>
+
+    <div id="message-section"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let checkCount = 0;
+const maxChecks = 120; // 10 minutes max (5 second intervals)
+
+function checkStatus() {
+    checkCount++;
+    
+    fetch('{{ url_for("monthly_statements.get_processing_status", session_id=session_id) }}', {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const statusMessage = document.getElementById('status-message');
+        const elapsedTime = document.getElementById('elapsed-time');
+        const progressFill = document.getElementById('progress-fill');
+        
+        // Update elapsed time
+        if (data.elapsed) {
+            const minutes = Math.floor(data.elapsed / 60);
+            const seconds = data.elapsed % 60;
+            elapsedTime.textContent = `Processing time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        switch(data.status) {
+            case 'processing':
+                statusMessage.textContent = 'Starting PDF processing...';
+                progressFill.style.width = '25%';
+                break;
+            case 'creating_pdfs':
+                statusMessage.textContent = 'Creating PDF files... This may take several minutes for large documents.';
+                progressFill.style.width = '75%';
+                break;
+            case 'completed':
+                statusMessage.textContent = 'Processing complete! Redirecting...';
+                progressFill.style.width = '100%';
+                progressFill.style.animation = 'none';
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 1500);
+                return; // Stop checking
+            case 'error':
+                statusMessage.textContent = 'An error occurred during processing.';
+                showMessage('Error: ' + (data.error || 'Unknown error'), 'error');
+                progressFill.style.animation = 'none';
+                return; // Stop checking
+        }
+        
+        // Continue checking if not completed and under max checks
+        if (checkCount < maxChecks) {
+            setTimeout(checkStatus, 5000); // Check every 5 seconds
+        } else {
+            // Timeout after 10 minutes
+            statusMessage.textContent = 'Processing is taking longer than expected.';
+            showMessage('Processing timeout. The file may be too large for this free hosting service.', 'error');
+            progressFill.style.animation = 'none';
+        }
+    })
+    .catch(error => {
+        console.error('Status check error:', error);
+        showMessage('Connection error while checking status.', 'error');
+    });
+}
+
+function showMessage(text, type) {
+    const messageSection = document.getElementById('message-section');
+    messageSection.innerHTML = `<div class="message ${type}">${text}</div>`;
+}
+
+// Start checking status
+setTimeout(checkStatus, 2000); // Start after 2 seconds
+</script>
+{% endblock %}
