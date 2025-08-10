@@ -45,11 +45,63 @@ class WebStatementProcessor:
         self.questions_needed: List[Dict[str, Any]] = []
         self.user_responses: List[str] = []
         self.question_history: List[int] = []
+        
+        # Background processing status
+        self._processing_status = 'pending'
+        self._start_time = None
+        self._processing_logs = []
+        self._error_message = None
     
     def extract_statements(self) -> List[Dict[str, Any]]:
         """Extract statements from PDF"""
         self.statements = self.processor.extract_statements()
         return self.statements
+    
+    def start_background_extraction(self):
+        """Start background statement extraction to prevent HTTP timeouts"""
+        import threading
+        import logging
+        from datetime import datetime
+        
+        logger = logging.getLogger(__name__)
+        
+        def log_message(msg):
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            log_entry = f"[{timestamp}] {msg}"
+            logger.info(f"[{self.session_id}] {msg}")
+            self._processing_logs.append(log_entry)
+        
+        def extract_in_background():
+            try:
+                log_message("Background extraction thread started")
+                self._processing_status = 'processing'
+                self._start_time = datetime.now()
+                
+                log_message("Starting PDF text extraction...")
+                self.statements = self.processor.extract_statements()
+                log_message(f"Extracted {len(self.statements)} statements successfully")
+                
+                log_message("Analyzing statements for manual review...")
+                self.questions_needed = [stmt for stmt in self.statements if stmt.get('ask_question', False)]
+                log_message(f"Found {len(self.questions_needed)} statements requiring manual review")
+                
+                self._processing_status = 'completed'
+                log_message("Statement extraction completed successfully")
+                
+            except Exception as e:
+                self._processing_status = 'error'
+                self._error_message = str(e)
+                log_message(f"ERROR: Statement extraction failed - {str(e)}")
+                logger.error(f"[{self.session_id}] Background extraction failed", exc_info=True)
+        
+        # Initialize logging
+        log_message("Initializing background statement extraction...")
+        
+        # Start background thread
+        extraction_thread = threading.Thread(target=extract_in_background, daemon=True)
+        extraction_thread.start()
+        
+        log_message("Background thread started, returning control to web interface")
     
     def get_questions(self) -> List[Dict[str, Any]]:
         """Get questions that need manual review"""
@@ -313,28 +365,22 @@ def process_files():
         os.chmod(pdf_path, 0o600)
         os.chmod(excel_path, 0o600)
         
-        # Create processor and extract statements
+        # Create processor (quick operation)
         processor = WebStatementProcessor(pdf_path, excel_path, session_id)
-        statements = processor.extract_statements()
-        questions = processor.get_questions()
         
-        # Store session securely
+        # Store session securely so we can track progress
         if not secure_session_manager.create_session(session_id, processor):
             raise ValueError("Failed to create secure session")
         
-        if questions:
-            return jsonify({
-                'status': 'questions',
-                'session_id': session_id,
-                'redirect_url': url_for('monthly_statements.questions_page', session_id=session_id)
-            })
-        else:
-            results = processor.create_results()
-            return jsonify({
-                'status': 'results',
-                'session_id': session_id,
-                'redirect_url': url_for('monthly_statements.results_page', session_id=session_id)
-            })
+        # Start background statement extraction
+        processor.start_background_extraction()
+        
+        # Return immediately and redirect to processing page
+        return jsonify({
+            'status': 'processing',
+            'session_id': session_id,
+            'redirect_url': url_for('monthly_statements.processing_status', session_id=session_id)
+        })
     
     except Exception as e:
         # Clean up files on error
@@ -443,8 +489,16 @@ def get_processing_status(session_id):
         pdf_elapsed = (pdf_end or time.time()) - pdf_start
         response['pdf_elapsed'] = int(pdf_elapsed)
     
-    # Overall completion check
-    if status == 'completed' and pdf_status == 'completed':
+    # Handle different completion scenarios
+    if status == 'completed' and pdf_status in ['unknown', 'starting']:
+        # Initial extraction completed, check for questions
+        questions = getattr(processor, 'questions_needed', [])
+        if questions:
+            response['redirect_url'] = url_for('monthly_statements.questions_page', session_id=session_id)
+        else:
+            response['redirect_url'] = url_for('monthly_statements.results_page', session_id=session_id)
+    elif status == 'completed' and pdf_status == 'completed':
+        # Both extraction and PDF creation completed
         response['redirect_url'] = url_for('monthly_statements.results_page', session_id=session_id)
     elif status == 'error':
         response['error'] = getattr(processor, '_error_message', 'Unknown error')

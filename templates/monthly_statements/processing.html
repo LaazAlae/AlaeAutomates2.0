@@ -118,9 +118,12 @@ function checkStatus() {
         }
         
         // Show current step based on status
-        if (data.status === 'processing') {
-            statusMessage.textContent = 'Extracting statements from PDF...';
-            progressFill.style.width = '25%';
+        if (data.status === 'pending') {
+            statusMessage.textContent = 'Initializing PDF processing...';
+            progressFill.style.width = '10%';
+        } else if (data.status === 'processing') {
+            statusMessage.textContent = 'Extracting statements from PDF... This may take a few minutes for large documents.';
+            progressFill.style.width = '40%';
         } else if (data.status === 'completed' && data.pdf_status === 'creating') {
             statusMessage.textContent = 'Creating PDF files in background... This prevents timeouts on large files.';
             progressFill.style.width = '75%';
@@ -131,8 +134,8 @@ function checkStatus() {
                 statusMessage.textContent += ` (PDF processing: ${pdfMinutes}:${pdfSeconds.toString().padStart(2, '0')})`;
             }
         } else if (data.status === 'completed') {
-            statusMessage.textContent = 'Statement extraction complete. Starting PDF creation...';
-            progressFill.style.width = '50%';
+            statusMessage.textContent = 'Statement extraction complete. Redirecting...';
+            progressFill.style.width = '60%';
         }
         
         // Fetch logs if visible
