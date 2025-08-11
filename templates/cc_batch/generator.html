@@ -175,6 +175,10 @@ function processExcel() {
     const formData = new FormData();
     formData.append('excel_file', file);
     
+    // Add CSRF token
+    const csrfToken = document.querySelector('meta[name=csrf-token]').getAttribute('content');
+    formData.append('csrf_token', csrfToken);
+    
     // Send to server for processing
     fetch('/cc_batch/process', {
         method: 'POST',
@@ -268,10 +272,12 @@ function copyToClipboard() {
 }
 
 function downloadCode() {
+    const csrfToken = document.querySelector('meta[name=csrf-token]').getAttribute('content');
     fetch('/cc_batch/download-code', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({ code: generatedCode })
     })

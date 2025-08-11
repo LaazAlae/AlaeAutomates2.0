@@ -11,6 +11,8 @@ import tempfile
 from datetime import datetime
 from security import validate_upload_files, sanitize_input, secure_error_response, log_security_event
 from werkzeug.utils import secure_filename
+from flask_wtf.csrf import validate_csrf
+from flask_wtf import FlaskForm
 
 cc_batch_bp = Blueprint('cc_batch', __name__)
 
@@ -210,6 +212,13 @@ def process_batch():
     """Process uploaded Excel file and generate JavaScript code"""
     
     try:
+        # Validate CSRF token
+        try:
+            validate_csrf(request.form.get('csrf_token'))
+        except Exception as e:
+            log_security_event('csrf_validation_failed', {'endpoint': 'cc_batch_process', 'error': str(e)})
+            return secure_error_response('CSRF token validation failed', 400)
+        
         # Validate file upload
         if 'excel_file' not in request.files:
             return secure_error_response('No Excel file uploaded', 400)
@@ -277,6 +286,14 @@ def download_code():
     """Download generated JavaScript code as a file"""
     
     try:
+        # Validate CSRF token
+        try:
+            csrf_token = request.headers.get('X-CSRFToken') or request.json.get('csrf_token')
+            validate_csrf(csrf_token)
+        except Exception as e:
+            log_security_event('csrf_validation_failed', {'endpoint': 'cc_batch_download', 'error': str(e)})
+            return secure_error_response('CSRF token validation failed', 400)
+        
         js_code = request.json.get('code', '')
         if not js_code:
             return secure_error_response('No code provided', 400)
