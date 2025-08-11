@@ -21,9 +21,8 @@ from modules.cc_batch.cc_batch import cc_batch_bp
 from modules.help.help import help_bp
 from modules.user_manual.user_manual import user_manual_bp
 
-# Import cleanup manager and keep-alive
+# Import cleanup manager and admin auth
 from cleanup_manager import cleanup_manager
-from keep_alive import keep_alive_manager
 from admin_auth import admin_auth, require_admin
 
 app = Flask(__name__)
@@ -176,21 +175,11 @@ def manual_cleanup():
         logging.error(f"Manual cleanup failed: {e}")
         return jsonify({'error': 'Cleanup failed'}), 500
 
-# Keep-alive stats endpoint (admin only)
-@app.route('/keep-alive-stats')
-@limiter.limit("10 per minute")
-@require_admin
-def keep_alive_stats():
-    stats = keep_alive_manager.get_stats()
-    return jsonify(stats)
-
-# Manual keep-alive ping endpoint (admin only)
-@app.route('/ping', methods=['POST'])
-@limiter.limit("5 per minute")
-@require_admin
-def manual_ping():
-    result = keep_alive_manager.manual_ping()
-    return jsonify(result)
+# Health check endpoint for monitoring
+@app.route('/ping', methods=['GET'])
+@limiter.limit("30 per minute")
+def ping():
+    return jsonify({'status': 'ok', 'timestamp': datetime.now().isoformat()})
 
 # Admin token info endpoint (for setup)
 @app.route('/admin-info')
@@ -207,8 +196,7 @@ if __name__ == '__main__':
     
     # Start background services
     cleanup_manager.start_background_cleanup()
-    keep_alive_manager.start_keep_alive()
-    logging.info("Started automatic file cleanup and keep-alive managers")
+    logging.info("Started automatic file cleanup manager")
     
     # Production vs Development
     debug_mode = os.environ.get('FLASK_ENV') != 'production'
@@ -216,7 +204,5 @@ if __name__ == '__main__':
     
     # Log startup info
     logging.info(f"Starting AlaeAutomates 2.0 on port {port} (debug={debug_mode})")
-    if keep_alive_manager._should_run_keep_alive():
-        logging.info(f"Keep-alive enabled for {keep_alive_manager.app_url}")
     
     app.run(host='0.0.0.0', port=port, debug=debug_mode)
