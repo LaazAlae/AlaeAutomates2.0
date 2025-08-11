@@ -13,7 +13,7 @@
             Large files are processed efficiently on Railway's infrastructure.
         </div>
         <form id="upload-form" enctype="multipart/form-data">
-            {{ csrf_token() }}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-group">
                 <label for="pdf_file">PDF Statement File (max 50MB):</label>
                 <input type="file" id="pdf_file" name="pdf_file" accept=".pdf" class="form-control" required>
@@ -26,13 +26,6 @@
         </form>
     </div>
 
-    <div id="progress-section" style="display: none;">
-        <h3>Processing Files...</h3>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
-        </div>
-        <p id="progress-text">Initializing...</p>
-    </div>
 
     <div id="message-section"></div>
 </div>
@@ -63,21 +56,9 @@ document.getElementById('upload-form').addEventListener('submit', function(e) {
     formData.append('pdf_file', pdfFile);
     formData.append('excel_file', excelFile);
     
-    // Show progress
+    // Show uploading message
+    showMessage('Uploading files, please wait...', 'info');
     document.getElementById('upload-section').style.display = 'none';
-    document.getElementById('progress-section').style.display = 'block';
-    
-    // Simulate progress
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += Math.random() * 20;
-        if (progress > 90) progress = 90;
-        document.getElementById('progress-fill').style.width = progress + '%';
-        document.getElementById('progress-text').textContent = 
-            progress < 30 ? 'Uploading files...' :
-            progress < 60 ? 'Extracting statements...' :
-            progress < 90 ? 'Processing data...' : 'Finalizing...';
-    }, 500);
     
     fetch('{{ url_for("monthly_statements.process_files") }}', {
         method: 'POST',
@@ -107,13 +88,9 @@ document.getElementById('upload-form').addEventListener('submit', function(e) {
             }
         }
         
-        clearInterval(progressInterval);
-        document.getElementById('progress-fill').style.width = '100%';
-        
         if (data.error) {
             showMessage(data.error, 'error');
             document.getElementById('upload-section').style.display = 'block';
-            document.getElementById('progress-section').style.display = 'none';
         } else {
             setTimeout(() => {
                 window.location.href = data.redirect_url;
@@ -121,10 +98,8 @@ document.getElementById('upload-form').addEventListener('submit', function(e) {
         }
     })
     .catch(error => {
-        clearInterval(progressInterval);
         showMessage('Upload failed: ' + error.message, 'error');
         document.getElementById('upload-section').style.display = 'block';
-        document.getElementById('progress-section').style.display = 'none';
     });
 });
 

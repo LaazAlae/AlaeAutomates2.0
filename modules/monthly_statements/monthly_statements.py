@@ -552,13 +552,32 @@ def download_results(session_id):
     if not hasattr(processor, '_results'):
         return jsonify({'error': 'Results not found'}), 404
     
+    # Get PDF files from either results or async processing
+    pdf_files = {}
+    if hasattr(processor, '_pdf_files') and processor._pdf_files:
+        pdf_files = processor._pdf_files
+    elif "pdf_files" in processor._results:
+        pdf_files = processor._results["pdf_files"]
+    
+    if not pdf_files:
+        return jsonify({'error': 'No PDF files available for download'}), 404
+    
     # Create temporary zip file
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as temp_zip:
+    temp_zip = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
+    try:
         with zipfile.ZipFile(temp_zip.name, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            for dest, file_info in processor._results["pdf_files"].items():
+            files_added = 0
+            for dest, file_info in pdf_files.items():
                 file_path = file_info["file"]
                 if os.path.exists(file_path):
-                    zip_file.write(file_path, os.path.basename(file_path))
+                    # Add with meaningful name
+                    zip_file.write(file_path, f"{dest}.pdf")
+                    files_added += 1
+            
+            if files_added == 0:
+                return jsonify({'error': 'PDF files not found on disk'}), 404
+        
+        temp_zip.close()
         
         return send_from_directory(
             os.path.dirname(temp_zip.name),
@@ -566,3 +585,7 @@ def download_results(session_id):
             as_attachment=True,
             download_name=f"monthly_statements_{session_id}.zip"
         )
+    except Exception as e:
+        if temp_zip:
+            temp_zip.close()
+        return jsonify({'error': f'Failed to create ZIP file: {str(e)}'}), 500
