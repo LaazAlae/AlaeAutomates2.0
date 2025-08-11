@@ -8,7 +8,6 @@ body {
     font-family: "MS Sans Serif", sans-serif;
     font-size: 11px;
     background-color: #c0c0c0;
-    overflow: hidden;
 }
 
 /* Main container */
@@ -25,7 +24,6 @@ body {
     font-size: 11px;
     font-weight: normal;
     padding: 0;
-    border-right: 2px outset #c0c0c0;
 }
 
 .sidebar-header {
@@ -61,10 +59,6 @@ body {
     text-align: left;
 }
 
-.sidebar-item:hover {
-    background-color: #a01818;
-}
-
 .login-info {
     color: #999999;
     padding: 8px 10px;
@@ -87,7 +81,7 @@ body {
     font-size: 12px;
     font-weight: bold;
     color: #000000;
-    border-bottom: 2px inset #c0c0c0;
+    border-bottom: 1px solid #999999;
 }
 
 .content-body {
@@ -95,26 +89,6 @@ body {
     height: calc(100% - 50px);
     padding: 15px;
     overflow-y: auto;
-}
-
-/* Consistent Windows 95 Style Elements */
-
-/* Raised elements (buttons, panels) */
-.raised {
-    border: 2px outset #c0c0c0;
-    border-top-color: #dfdfdf;
-    border-left-color: #dfdfdf;
-    border-right-color: #808080;
-    border-bottom-color: #808080;
-}
-
-/* Sunken elements (text inputs, progress bars) */
-.sunken {
-    border: 2px inset #c0c0c0;
-    border-top-color: #808080;
-    border-left-color: #808080;
-    border-right-color: #dfdfdf;
-    border-bottom-color: #dfdfdf;
 }
 
 /* Upload containers and panels */
@@ -126,14 +100,10 @@ body {
 }
 
 .upload-area, .question-container {
-    background-color: #c0c0c0;
+    background-color: white;
     padding: 15px;
     margin: 15px 0;
-    border: 2px inset #c0c0c0;
-    border-top-color: #808080;
-    border-left-color: #808080;
-    border-right-color: #dfdfdf;
-    border-bottom-color: #dfdfdf;
+    border: 1px solid #808080;
 }
 
 /* Form elements */
@@ -153,17 +123,8 @@ body {
     padding: 4px 6px;
     font-family: "MS Sans Serif", sans-serif;
     font-size: 11px;
-    border: 2px inset #c0c0c0;
-    border-top-color: #808080;
-    border-left-color: #808080;
-    border-right-color: #dfdfdf;
-    border-bottom-color: #dfdfdf;
+    border: 1px solid #808080;
     background-color: white;
-}
-
-.form-control:focus, input[type="file"]:focus {
-    outline: 1px dotted #000;
-    outline-offset: -3px;
 }
 
 /* Buttons */
@@ -174,73 +135,29 @@ body {
     font-weight: normal;
     background-color: #c0c0c0;
     color: #000;
-    border: 2px outset #c0c0c0;
-    border-top-color: #dfdfdf;
-    border-left-color: #dfdfdf;
-    border-right-color: #808080;
-    border-bottom-color: #808080;
+    border: 1px solid #808080;
     cursor: pointer;
     margin: 2px;
 }
 
-.btn:hover, .btn-primary:hover, button:hover {
-    background-color: #d4d4d4;
-}
-
-.btn:active, .btn-primary:active, button:active {
-    border: 2px inset #c0c0c0;
-    border-top-color: #808080;
-    border-left-color: #808080;
-    border-right-color: #dfdfdf;
-    border-bottom-color: #dfdfdf;
-    background-color: #b8b8b8;
-}
-
-.btn:disabled, button:disabled {
-    color: #808080;
-    background-color: #c0c0c0;
-    border: 2px outset #c0c0c0;
-    cursor: default;
-}
-
-/* Progress bars - consistent style */
+/* Progress bars */
 .progress-bar {
     width: 100%;
     height: 18px;
-    background-color: #c0c0c0;
-    border: 2px inset #c0c0c0;
-    border-top-color: #808080;
-    border-left-color: #808080;
-    border-right-color: #dfdfdf;
-    border-bottom-color: #dfdfdf;
+    background-color: white;
+    border: 1px solid #808080;
     margin: 10px 0;
-    overflow: hidden;
 }
 
 .progress-fill {
     height: 100%;
     background-color: #008080;
-    background-image: linear-gradient(90deg, #008080 0%, #00a0a0 50%, #008080 100%);
-    border: none;
-    transition: width 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     color: white;
     font-size: 10px;
     font-weight: bold;
-}
-
-@keyframes pulse {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-.progress-fill[style*="animation"] {
-    background-image: linear-gradient(45deg, #008080 25%, #00a0a0 25%, #00a0a0 50%, #008080 50%, #008080 75%, #00a0a0 75%);
-    background-size: 20px 20px;
-    animation: pulse 1s linear infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Question and results containers */
@@ -249,22 +166,12 @@ body {
     color: white;
     padding: 8px 12px;
     font-weight: bold;
-    border: 2px outset #008080;
-    border-top-color: #00a0a0;
-    border-left-color: #00a0a0;
-    border-right-color: #006060;
-    border-bottom-color: #006060;
 }
 
 .question-content {
     background-color: white;
     padding: 15px;
-    border: 2px inset #c0c0c0;
-    border-top-color: #808080;
-    border-left-color: #808080;
-    border-right-color: #dfdfdf;
-    border-bottom-color: #dfdfdf;
-    margin-top: -2px;
+    border: 1px solid #808080;
 }
 
 /* Results display */
@@ -279,11 +186,7 @@ body {
     background-color: white;
     padding: 15px;
     margin: 15px 0;
-    border: 2px inset #c0c0c0;
-    border-top-color: #808080;
-    border-left-color: #808080;
-    border-right-color: #dfdfdf;
-    border-bottom-color: #dfdfdf;
+    border: 1px solid #808080;
 }
 
 .results-header {
@@ -292,14 +195,13 @@ body {
     padding: 8px 12px;
     margin: -15px -15px 15px -15px;
     font-weight: bold;
-    border-bottom: 2px outset #008080;
 }
 
 /* Messages */
 .message {
     padding: 8px 12px;
     margin: 10px 0;
-    border: 2px solid;
+    border: 1px solid;
     font-weight: bold;
 }
 
@@ -307,40 +209,24 @@ body {
     background-color: #ffe8e8;
     color: #800000;
     border-color: #c00000;
-    border-top-color: #ff8080;
-    border-left-color: #ff8080;
-    border-right-color: #800000;
-    border-bottom-color: #800000;
 }
 
 .message.success {
     background-color: #e8ffe8;
     color: #008000;
     border-color: #00c000;
-    border-top-color: #80ff80;
-    border-left-color: #80ff80;
-    border-right-color: #008000;
-    border-bottom-color: #008000;
 }
 
 .message.info {
     background-color: #e8f4ff;
     color: #000080;
     border-color: #0080c0;
-    border-top-color: #80c0ff;
-    border-left-color: #80c0ff;
-    border-right-color: #004080;
-    border-bottom-color: #004080;
 }
 
 /* Alert boxes */
 .alert {
     background-color: #fff8dc;
-    border: 2px outset #c0c0c0;
-    border-top-color: #dfdfdf;
-    border-left-color: #dfdfdf;
-    border-right-color: #808080;
-    border-bottom-color: #808080;
+    border: 1px solid #808080;
     padding: 8px 12px;
     margin: 10px 0;
     font-size: 11px;
@@ -357,11 +243,7 @@ body {
 .stats-item {
     background-color: white;
     padding: 12px;
-    border: 2px inset #c0c0c0;
-    border-top-color: #808080;
-    border-left-color: #808080;
-    border-right-color: #dfdfdf;
-    border-bottom-color: #dfdfdf;
+    border: 1px solid #808080;
     text-align: center;
 }
 
@@ -382,11 +264,7 @@ body {
 /* File list styling */
 .file-list {
     background-color: white;
-    border: 2px inset #c0c0c0;
-    border-top-color: #808080;
-    border-left-color: #808080;
-    border-right-color: #dfdfdf;
-    border-bottom-color: #dfdfdf;
+    border: 1px solid #808080;
     margin: 10px 0;
 }
 
@@ -416,23 +294,45 @@ body {
     margin: 0 5px;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .main-container {
-        flex-direction: column;
-    }
-    
-    .sidebar {
-        width: 100%;
-        height: auto;
-    }
-    
-    .upload-container, .results-container {
-        padding: 10px;
-        max-width: 100%;
-    }
-    
-    .stats-container {
-        grid-template-columns: 1fr;
-    }
+/* Help page styling */
+.help-section {
+    margin-bottom: 15px;
+    background-color: white;
+    border: 1px solid #808080;
+}
+
+.help-header {
+    background-color: #c0c0c0;
+    padding: 8px 12px;
+    font-weight: bold;
+    cursor: pointer;
+    border-bottom: 1px solid #808080;
+}
+
+.help-content {
+    padding: 15px;
+    display: none;
+}
+
+.help-content.active {
+    display: block;
+}
+
+.help-content h4 {
+    color: #008080;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.help-content ul {
+    margin: 8px 0 8px 20px;
+}
+
+.help-content ol {
+    margin: 8px 0 8px 20px;
+}
+
+.help-content p {
+    margin-bottom: 8px;
+    line-height: 1.4;
 }
