@@ -106,9 +106,13 @@ function checkStatus() {
             return; // Stop checking
         }
         
-        // Handle completion when both processing and PDF creation are done
-        if (data.status === 'completed' && data.pdf_status === 'completed') {
-            statusMessage.textContent = 'Processing complete! Redirecting...';
+        // Handle completion - redirect when redirect_url is available
+        if (data.redirect_url) {
+            if (data.redirect_url.includes('questions')) {
+                statusMessage.textContent = 'Statement extraction complete. Redirecting to manual review...';
+            } else {
+                statusMessage.textContent = 'Processing complete! Redirecting...';
+            }
             progressFill.style.width = '100%';
             progressFill.style.animation = 'none';
             setTimeout(() => {
