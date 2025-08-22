@@ -1,63 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>{% block title %}United Corporate Services{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet" type="text/css" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
-    <div class="main-container">
-        <!-- Left Sidebar -->
-        <div class="sidebar">
-            <div class="sidebar-header">ALAEAUTOMATES 2.0</div>
-            <div class="sidebar-header">UCS</div>
-            <div class="login-info">GIFT BY: A.LAAZIRI</div>
+    <div id="wrapper">
+        <div id="menu">
+            <div class="title" style="width: 185px">ALAEAUTOMATES 2.0</div>
+            <span id="title" class="title">UCS</span>
+            <span id="section" class="section">GIFT BY: A.LAAZIRI</span>
             
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">SEPARATOR:</div>
-                <button class="sidebar-item" onclick="navigateTo('/monthly_statements')">Monthly Statement</button>
-                <button class="sidebar-item" onclick="navigateTo('/invoices')">Invoices</button>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">EXCEL MACROS:</div>
-                <button class="sidebar-item" onclick="navigateTo('/excel_macros/cleanup')">Clean-up & Format</button>
-                <button class="sidebar-item" onclick="navigateTo('/excel_macros/sort')">Sort & Sum</button>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">ACCOUNTING:</div>
-                <button class="sidebar-item" onclick="navigateTo('/cc_batch')">Create CC batch</button>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">GENERAL:</div>
-                <button class="sidebar-item" onclick="navigateTo('/help')">Help</button>
-                <button class="sidebar-item" onclick="navigateTo('/user_manual')">User Manual</button>
+            <div id="menuTree">
+                <table border="0" bordercolor="red">
+                    <tr><td><FONT FACE='Verdana,Arial,Helvetica' SIZE='-1' color='#999999'><b>SEPARATOR:</b></font></td></tr>
+                    <tr><td><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2'>&nbsp;&nbsp;</font><a href='/monthly_statements'><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2' color='#ffffff'><b>Monthly Statement</b></font></a></td></tr>
+                    <tr><td><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2'>&nbsp;&nbsp;</font><a href='/invoices'><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2' color='#ffffff'><b>Invoices</b></font></a></td></tr>
+                    
+                    <tr><td></td></tr>
+                    
+                    <tr><td><FONT FACE='Verdana,Arial,Helvetica' SIZE='-1' color='#999999'><b>EXCEL MACROS:</b></font></td></tr>
+                    <tr><td><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2'>&nbsp;&nbsp;</font><a href='/excel_macros/cleanup'><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2' color='#ffffff'><b>Clean-up & Format</b></font></a></td></tr>
+                    <tr><td><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2'>&nbsp;&nbsp;</font><a href='/excel_macros/sort'><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2' color='#ffffff'><b>Sort & Sum</b></font></a></td></tr>
+                    
+                    <tr><td></td></tr>
+                    
+                    <tr><td><FONT FACE='Verdana,Arial,Helvetica' SIZE='-1' color='#999999'><b>ACCOUNTING:</b></font></td></tr>
+                    <tr><td><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2'>&nbsp;&nbsp;</font><a href='/cc_batch'><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2' color='#ffffff'><b>Create CC batch</b></font></a></td></tr>
+                    
+                    <tr><td></td></tr>
+                    
+                    <tr><td><FONT FACE='Verdana,Arial,Helvetica' SIZE='-1' color='#999999'><b>GENERAL:</b></font></td></tr>
+                    <tr><td><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2'>&nbsp;&nbsp;</font><a href='/help'><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2' color='#ffffff'><b>Help</b></font></a></td></tr>
+                    <tr><td><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2'>&nbsp;&nbsp;</font><a href='/user_manual'><FONT FACE='Verdana,Arial,Helvetica' SIZE='-2' color='#ffffff'><b>User Manual</b></font></a></td></tr>
+                </table>
             </div>
         </div>
 
-        <!-- Main Content Area -->
-        <div class="main-content">
-            {% if show_header %}
-            <div class="content-header">
-                {% block header %}{% endblock %}
-            </div>
-            {% endif %}
-            <div class="content-body">
-                {% block content %}{% endblock %}
-            </div>
+        <div id="main">
+            {% block content %}{% endblock %}
         </div>
     </div>
 
-    <script>
-        function navigateTo(url) {
-            window.location.href = url;
-        }
-    </script>
-    
+    <!-- Fixed Bottom Button -->
+    <a href="https://alaeautomatesbetter.up.railway.app/" target="_blank" class="fixed-upgrade-link">
+        <div class="modern-upgrade-btn">The New AlaeAutomates Now Available Click Here</div>
+    </a>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

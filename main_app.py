@@ -227,7 +227,7 @@ if __name__ == '__main__':
     logging.info("Started automatic file cleanup manager")
     
     is_production = os.environ.get('FLASK_ENV') == 'production'
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 5001))
     
     logging.info(f"Starting AlaeAutomates 2.0 on port {port} (production={is_production})")
     app.run(host='0.0.0.0', port=port, debug=not is_production)
